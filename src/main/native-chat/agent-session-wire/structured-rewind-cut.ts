@@ -37,6 +37,7 @@ export function structuredRewindCut(
   const { providerKey, omitted, nativeIdentity } = savedRewindKeys(snapshot.submissions)
   const selected = items.find((item) => item.itemId === target.itemId)
   const key = selected ? nativeIdentity(selected.itemId) : null
+  const legacyKey = selected ? parseAgentJournalItemKey(providerKey(selected.itemId)) : null
   if (key?.provider === 'claude' && target.provider === 'claude') {
     // Messages before an earlier fork still cut at their original position.
     const boundary = items.findIndex((item) => item.itemId === target.itemId)
@@ -51,6 +52,35 @@ export function structuredRewindCut(
     })
     return {
       beforeMessage: { sessionId: key.sessionId, uuid: key.uuid },
+      kept: keptRows.map((item) => keptRow(journal, item, providerKey))
+    }
+  }
+  if (
+    target.provider === 'zcode' &&
+    legacyKey?.provider === 'legacy' &&
+    legacyKey.agent === 'zcode'
+  ) {
+    // zcode also rewinds by forking, at a turn boundary: the adapter reads the cut turn's own
+    // provider turn id out of beforeMessage.uuid and forks the session up to the turn before it.
+    const turnOf = turnMembership(journal, items, target.nativeId, providerKey)
+    const boundary = items.findIndex((item) => item.itemId === target.itemId)
+    if (boundary === -1) {
+      return null
+    }
+    const cutTurnId = turnOf(items[boundary])
+    if (!cutTurnId) {
+      return null
+    }
+    const keptTurns = new Set(items.slice(0, boundary).flatMap((item) => turnOf(item) ?? []))
+    const keptRows = items.filter((item, index) => {
+      const turnId = turnOf(item)
+      return (
+        !omitted.has(item.itemId) &&
+        (index < boundary || (turnId !== undefined && keptTurns.has(turnId)))
+      )
+    })
+    return {
+      beforeMessage: { sessionId: target.nativeId, uuid: cutTurnId },
       kept: keptRows.map((item) => keptRow(journal, item, providerKey))
     }
   }
