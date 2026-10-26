@@ -301,12 +301,21 @@ export function ProviderPanel({
 
   const updatedAgo = p.updatedAt ? `Updated ${formatTimeAgo(p.updatedAt)}` : 'Not yet updated'
   const resetCreditCount =
-    showResetCredits && p.provider === 'codex'
+    showResetCredits && (p.provider === 'codex' || p.provider === 'zcode')
       ? (p.rateLimitResetCredits?.availableCount ?? null)
       : null
   const resetCreditExpiry =
     resetCreditCount != null
       ? formatResetCreditExpiry(p.rateLimitResetCredits?.nextExpiresAt, resetCreditCount)
+      : null
+  // Why: the GLM plan's weekly-window cards ride optional fields beside codex's single pool.
+  const weekResetCount =
+    showResetCredits && p.provider === 'zcode'
+      ? (p.rateLimitResetCredits?.weekAvailableCount ?? 0)
+      : 0
+  const weekResetExpiry =
+    weekResetCount > 0
+      ? formatResetCreditExpiry(p.rateLimitResetCredits?.weekNextExpiresAt, weekResetCount)
       : null
 
   return (
@@ -317,21 +326,51 @@ export function ProviderPanel({
           {name}
         </div>
         <div className={faintClass}>{updatedAgo}</div>
-        {resetCreditCount !== null && resetCreditCount !== undefined ? (
+        {resetCreditCount !== null && resetCreditCount !== undefined && resetCreditCount > 0 ? (
           <div className={mutedClass}>
-            {resetCreditCount === 1
-              ? translate(
-                  'auto.components.status.bar.tooltip.45198c7d95',
-                  '1 rate-limit reset available'
-                )
-              : translate(
-                  'auto.components.status.bar.tooltip.bce421cba3',
-                  '{{value0}} rate-limit resets available',
-                  { value0: resetCreditCount }
-                )}
+            {p.provider === 'zcode'
+              ? resetCreditCount === 1
+                ? translate(
+                    'auto.components.status.bar.StatusBar.zcode.oneFiveHourCard',
+                    '1 five-hour rate-limit reset available'
+                  )
+                : translate(
+                    'auto.components.status.bar.StatusBar.zcode.fiveHourCards',
+                    '{{value0}} five-hour rate-limit resets available',
+                    { value0: resetCreditCount }
+                  )
+              : resetCreditCount === 1
+                ? translate(
+                    'auto.components.status.bar.tooltip.45198c7d95',
+                    '1 rate-limit reset available'
+                  )
+                : translate(
+                    'auto.components.status.bar.tooltip.bce421cba3',
+                    '{{value0}} rate-limit resets available',
+                    { value0: resetCreditCount }
+                  )}
           </div>
         ) : null}
-        {resetCreditExpiry ? <div className={faintClass}>{resetCreditExpiry}</div> : null}
+        {resetCreditCount != null && resetCreditCount > 0 && resetCreditExpiry ? (
+          <div className={faintClass}>{resetCreditExpiry}</div>
+        ) : null}
+        {weekResetCount > 0 ? (
+          <>
+            <div className={mutedClass}>
+              {weekResetCount === 1
+                ? translate(
+                    'auto.components.status.bar.StatusBar.zcode.oneWeekCard',
+                    '1 weekly rate-limit reset available'
+                  )
+                : translate(
+                    'auto.components.status.bar.StatusBar.zcode.weekCards',
+                    '{{value0}} weekly rate-limit resets available',
+                    { value0: weekResetCount }
+                  )}
+            </div>
+            {weekResetExpiry ? <div className={faintClass}>{weekResetExpiry}</div> : null}
+          </>
+        ) : null}
       </div>
 
       <div className={`border-t ${dividerClass}`} />

@@ -14,6 +14,7 @@ function readV2File(path: string): string {
 }
 
 const credentialSchema = z.record(z.string(), z.string())
+const oauthAccountSchema = z.looseObject({ id: z.string().trim().min(1) })
 const sites = new Map([
   ['account:zai-individual-coding-plan', 'zai'],
   ['account:bigmodel-individual-coding-plan', 'bigmodel']
@@ -48,7 +49,10 @@ function userPath(value: string, home: string): string {
 }
 
 // Read-only enc:v1 compatibility with ZCode 29628c9 credential-cipher.ts.
-function decrypt(value: string, host: ZcodeCredentialHost): string {
+export function decryptZcodeV2CredentialValue(
+  value: string,
+  host: ZcodeCredentialHost = localZcodeCredentialHost()
+): string {
   if (!value.startsWith('enc:v1:')) {
     return value
   }
@@ -74,6 +78,50 @@ function decrypt(value: string, host: ZcodeCredentialHost): string {
   ]).toString('utf8')
 }
 
+function readOAuthPlanCredential(
+  store: Record<string, string>,
+  host: ZcodeCredentialHost,
+  configPath: string
+): ZcodeV2PlanCredential | null {
+  const rawFamily = store['oauth:active_provider']
+  if (!rawFamily) {
+    return null
+  }
+  const family = decryptZcodeV2CredentialValue(rawFamily, host).trim()
+  if (family !== 'zai' && family !== 'bigmodel') {
+    return { status: 'unavailable' }
+  }
+  const rawUserInfo = store[`oauth:${family}:user_info`]
+  if (!rawUserInfo) {
+    return { status: 'unavailable' }
+  }
+  const account = oauthAccountSchema.safeParse(
+    JSON.parse(decryptZcodeV2CredentialValue(rawUserInfo, host))
+  )
+  if (!account.success) {
+    return { status: 'unavailable' }
+  }
+  const providerId = `account:${family}-individual-coding-plan`
+  const rawKey =
+    store[
+      `account-provider:coding-plan:${providerId}:account:${encodeURIComponent(account.data.id)}:api-key`
+    ]
+  if (!rawKey) {
+    return { status: 'unavailable' }
+  }
+  const apiKey = decryptZcodeV2CredentialValue(rawKey, host).trim()
+  if (!apiKey || /[\r\n]/.test(apiKey)) {
+    return { status: 'error' }
+  }
+  return {
+    status: 'ok',
+    apiKey,
+    baseUrl: ZCODE_PLAN_SITE_BASE_URLS[family],
+    identity: JSON.stringify([family, account.data.id]),
+    configPath
+  }
+}
+
 export function readZcodeV2PlanCredential(
   host = localZcodeCredentialHost()
 ): ZcodeV2PlanCredential {
@@ -91,7 +139,23 @@ export function readZcodeV2PlanCredential(
         error instanceof Error && 'code' in error && error.code === 'ENOENT' ? 'absent' : 'error'
     }
   }
+  let rawCredentials: string
   try {
+    rawCredentials = readV2File(join(base, '.zcode', 'v2', 'credentials.json'))
+  } catch (error) {
+    return {
+      status:
+        error instanceof Error && 'code' in error && error.code === 'ENOENT'
+          ? 'unavailable'
+          : 'error'
+    }
+  }
+  try {
+    const store = credentialSchema.parse(JSON.parse(rawCredentials))
+    const oauth = readOAuthPlanCredential(store, host, configPath)
+    if (oauth) {
+      return oauth
+    }
     const selection = readSupportedZcodeV2Selection(JSON.parse(rawConfig))
     if (!selection) {
       return { status: 'unavailable' }
@@ -100,14 +164,11 @@ export function readZcodeV2PlanCredential(
     if (!site) {
       return { status: 'unavailable' }
     }
-    const store = credentialSchema.parse(
-      JSON.parse(readV2File(join(base, '.zcode', 'v2', 'credentials.json')))
-    )
     const rawIdentity = store[`account-provider:${selection.providerId}:identity`]
     if (!rawIdentity) {
       return { status: 'unavailable' }
     }
-    const identity = decrypt(rawIdentity, host).trim()
+    const identity = decryptZcodeV2CredentialValue(rawIdentity, host).trim()
     if (!identity) {
       return { status: 'unavailable' }
     }
@@ -118,7 +179,7 @@ export function readZcodeV2PlanCredential(
     if (!rawKey) {
       return { status: 'unavailable' }
     }
-    const apiKey = decrypt(rawKey, host).trim()
+    const apiKey = decryptZcodeV2CredentialValue(rawKey, host).trim()
     if (!apiKey || /[\r\n]/.test(apiKey)) {
       return { status: 'error' }
     }
