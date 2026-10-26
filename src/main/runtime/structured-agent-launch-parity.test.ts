@@ -12,6 +12,7 @@ import type * as AcpAdapterModule from '../acp/acp-structured-session-adapter'
 import type * as ClaudeAdapterModule from '../claude/claude-structured-session-adapter'
 import type * as CodexAdapterModule from '../codex/codex-structured-session-adapter'
 import type * as PiAdapterModule from '../pi/rpc-session-adapter'
+import type * as ZcodeAdapterModule from '../zcode/zcode-structured-session-adapter'
 import type * as ManagedProviderProcessModule from '../provider-process/managed-provider-process'
 import type { ProviderProcessLaunch } from '../provider-process/provider-process-launch'
 import type * as StructuredAgentSessionRuntimeModule from './structured-agent-session-runtime'
@@ -103,6 +104,15 @@ vi.mock('../pi/rpc-session-adapter', async (importOriginal) => {
   }
   return { ...actual, PiRpcSessionAdapter: RecordingAdapter }
 })
+vi.mock('../zcode/zcode-structured-session-adapter', async (importOriginal) => {
+  const actual = await importOriginal<typeof ZcodeAdapterModule>()
+  class RecordingAdapter extends actual.ZcodeStructuredSessionAdapter {
+    constructor(deps: ConstructorParameters<typeof actual.ZcodeStructuredSessionAdapter>[0]) {
+      super({ ...deps, resolveLaunch: (input) => deps.resolveLaunch(input).then(capture.record) })
+    }
+  }
+  return { ...actual, ZcodeStructuredSessionAdapter: RecordingAdapter }
+})
 vi.mock('electron', () => ({
   BrowserWindow: { fromId: vi.fn(() => null) },
   webContents: { fromId: vi.fn(() => null) },
@@ -163,7 +173,8 @@ const AGENTS = [
   'omp',
   'pi',
   'antigravity',
-  'opencode2'
+  'opencode2',
+  'zcode'
 ] as const
 type Agent = (typeof AGENTS)[number]
 
@@ -176,7 +187,8 @@ const VERSIONS: Record<Agent, string> = {
   omp: '17.1.0',
   pi: '1.1.0',
   antigravity: '1.3.0',
-  opencode2: '2.0.20'
+  opencode2: '2.0.20',
+  zcode: '3.16.2'
 }
 /** An agent whose binary is not named after it. */
 const BINARIES: Partial<Record<Agent, string>> = { antigravity: 'agy_acp_server.par' }
@@ -260,6 +272,13 @@ async function installFakeBinaries(bin: string): Promise<void> {
       `if [ "$1" = "--version" ]; then echo "${VERSIONS[agent]}"; exit 0; fi\nexit 1`
     )
   }
+  // The zcode desktop layout: the official bundle beside the binary makes the fake resolve as a
+  // desktop install (the electron beside it runs the bundle under ELECTRON_RUN_AS_NODE), ahead of
+  // any conventional install root this machine may have.
+  for (const parent of [bin, join(root, 'custom-bin')]) {
+    await mkdir(join(parent, 'resources', 'glm'), { recursive: true })
+    await writeFile(join(parent, 'resources', 'glm', 'zcode.cjs'), 'module.exports = null\n')
+  }
   await writeExecutable(join(bin, 'node'), 'exit 0')
   // The Antigravity server runs only beside its harness.
   await writeExecutable(join(bin, 'localharness_external'), 'exit 0')
@@ -292,7 +311,8 @@ function configuredSettings(): Partial<GlobalSettings> {
       omp: '',
       pi: '',
       antigravity: '',
-      opencode2: ''
+      opencode2: '',
+      zcode: ''
     },
     agentDefaultEnv: Object.fromEntries(
       AGENTS.map((agent) => [
@@ -366,6 +386,8 @@ function accountHomeFor(agent: Agent): AgentSessionAccountHome {
       return { variable: 'PI_CODING_AGENT_DIR', path: directory('pi') }
     case 'antigravity':
       return { variable: 'GEMINI_HOME', path: directory('antigravity') }
+    case 'zcode':
+      return { variable: 'ZCODE_DATA_BASE_DIR', path: directory('zcode') }
   }
 }
 
@@ -391,6 +413,8 @@ async function resumedHandleFor(
     case 'omp':
     case 'antigravity':
       return { transport: 'acp', agent, nativeId: `acp-session-${sessionId}` }
+    case 'zcode':
+      return { transport: 'zcode-app-server', agent, nativeId: `session_${sessionId}` }
   }
 }
 

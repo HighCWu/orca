@@ -136,7 +136,7 @@ const ACCOUNT_VARIABLE = {
 }
 
 function adopt(
-  agent: 'grok' | 'omp' | 'opencode' | 'pi',
+  agent: 'grok' | 'omp' | 'opencode' | 'pi' | 'zcode',
   selectedAccountHome: AgentSessionAccountHome,
   providerSessionId = SESSION_ID,
   launchEnv: NodeJS.ProcessEnv = process.env,
@@ -176,6 +176,36 @@ describe('which chats can take over a CLI conversation', () => {
         expect(CLI_CONVERSATION_ADOPTING_AGENTS[agent][0]).toBe(agent)
       }
     }
+  })
+})
+
+describe('adopting a ZCode CLI conversation', () => {
+  const ZCODE_SESSION = 'session_orca_adopt'
+
+  it('imports from the account store the resumed zcode app-server resumes from', async () => {
+    root = await createAdoptionTestDirectory(join(tmpdir(), 'orca-zcode-adopt-'))
+    const store = join(root, '.zcode', 'cli', 'db', 'db.sqlite')
+    writeOpenCodeSqliteDatabase(store, [
+      { id: ZCODE_SESSION, turns: [{ role: 'user', parts: ['zcode account store'] }] }
+    ])
+    const accountHome = { variable: 'ZCODE_DATA_BASE_DIR', path: root }
+
+    expect((await adopt('zcode', accountHome, ZCODE_SESSION)).transcriptPath).toBe(store)
+    const imported = await prepareLegacyTranscriptImport({
+      agent: 'zcode',
+      sessionId: ZCODE_SESSION,
+      options: { filePath: store }
+    })
+    expect(imported.ok && JSON.stringify(imported.items)).toContain('zcode account store')
+  })
+
+  it('refuses a conversation the account does not hold, rather than opening a blank chat', async () => {
+    root = await createAdoptionTestDirectory(join(tmpdir(), 'orca-zcode-adopt-missing-'))
+    await expect(
+      adopt('zcode', { variable: 'ZCODE_DATA_BASE_DIR', path: root }, ZCODE_SESSION)
+    ).rejects.toMatchObject({
+      refusal: { code: 'agent_session_identity_required' }
+    })
   })
 })
 
