@@ -85,9 +85,11 @@ describe('the model catalog contract on every registration', () => {
       STRUCTURED_AGENT_RUNTIME_REGISTRATIONS,
       context()
     )
-    // Codex's `model/list` names it. Grok's session-free `currentModelId` can differ from what a
-    // session runs, so Grok, like the rest, learns it from a chat with no pick.
-    expect([...listingNamesConfiguredModel].sort()).toEqual(['codex'])
+    // Codex's `model/list` names it, and zcode's session-free create snapshot names
+    // `settings.model.current` — the same model a new chat runs. Grok's session-free
+    // `currentModelId` can differ from what a session runs, so Grok, like the rest,
+    // learns it from a chat with no pick.
+    expect([...listingNamesConfiguredModel].sort()).toEqual(['codex', 'zcode'])
   })
 
   // OpenCode 2.x and OMP list in a session opened in the chat's folder, which a prewarm does not have.
