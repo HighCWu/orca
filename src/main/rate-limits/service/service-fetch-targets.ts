@@ -16,11 +16,14 @@ import {
 } from './service-types'
 import type { CodexRateLimitResetOutcome } from '../../../shared/rate-limit-types'
 import { ApiKeyFileUnreadableError } from '../../credentials/api-key-file-unreadable-error'
+import { fetchZcodeResetResult } from './zcode-reset-result-refresh'
+
+export { zcodeResetUsageVisible } from './zcode-reset-result-refresh'
 
 const CODEX_RESET_REFRESH_RETRIES = 3
 const CODEX_RESET_REFRESH_DELAY_MS = 250
 
-function waitForCodexResetRefresh(): Promise<void> {
+function waitForResetRefresh(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, CODEX_RESET_REFRESH_DELAY_MS))
 }
 
@@ -123,7 +126,7 @@ export abstract class RateLimitServiceFetchTargets extends RateLimitServiceResul
       attempt += 1
     ) {
       if (attempt > 0) {
-        await waitForCodexResetRefresh()
+        await waitForResetRefresh()
       }
       const controller = this.beginFetchCycle()
       try {
@@ -169,6 +172,38 @@ export abstract class RateLimitServiceFetchTargets extends RateLimitServiceResul
 
     // Return the redeemed target even if global selection changed mid-request.
     return { ...stateBeforeReset, codex: scopedCodex, codexTarget: target }
+  }
+
+  /** The post-redemption read codex does: a retrying refresh until the reset shows through,
+   *  published ahead of every fetch that started before it and bound to the redeemed CLI account. */
+  protected async fetchZcodeResetResultState(
+    stateBeforeReset: RateLimitState,
+    resetType: 'FIVE_HOUR' | 'WEEK',
+    resetAccountId: string
+  ): Promise<RateLimitState> {
+    const planConfig = this.resolveZcodePlanConfig()
+    // Reset cards belong only to the CLI account; a saved plan key is a different quota lane.
+    if (planConfig.error || planConfig.config.apiKey) {
+      return stateBeforeReset
+    }
+    const fresh = await fetchZcodeResetResult({
+      previous: stateBeforeReset.zcode,
+      resetType,
+      accountId: resetAccountId,
+      beginFetch: () => this.beginFetchCycle(),
+      finishFetch: (controller) => this.finishFetchCycle(controller)
+    })
+
+    const scopedZcode = this.applyStalePolicy(fresh, stateBeforeReset.zcode)
+    // Why: this post-redemption read is newer than every zcode fetch that
+    // started before it, so invalidate those results before publishing it.
+    this.zcodeFetchGeneration += 1
+    this.trackActiveFailureStreak('zcode', fresh)
+    this.updateState({
+      ...this.state,
+      zcode: this.applyStalePolicy(fresh, this.state.zcode)
+    })
+    return { ...stateBeforeReset, zcode: scopedZcode }
   }
 
   protected shouldAllowClaudePtyFallback(

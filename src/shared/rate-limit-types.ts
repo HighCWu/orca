@@ -142,6 +142,10 @@ export type CodexRateLimitResetResult = {
   state: RateLimitState
 }
 
+export type ZcodeRateLimitResetResult = {
+  state: RateLimitState
+}
+
 export type RateLimitRuntimeTarget = {
   runtime: 'host' | 'wsl'
   wslDistro: string | null

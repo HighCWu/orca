@@ -26,6 +26,7 @@ import { FloatingTerminalIconContextMenu } from '@/components/floating-terminal/
 import { ClaudeSwitcherMenu } from './ClaudeSwitcherMenu'
 import { CodexSwitcherMenu } from './CodexSwitcherMenu'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
+import { ZcodeResetCreditAction } from './zcode-reset-credit-action'
 import { CLOSE_ALL_CONTEXT_MENUS_EVENT } from '@/lib/close-all-context-menus'
 import { ProviderSegment, UsageOverflowChip, getUsageTone } from './StatusBarProviderSegment'
 import {
@@ -246,11 +247,14 @@ export function StatusBarSurface({
                           iconOnly={false}
                           asSubmenu
                           triggerContent={rowNode}
+                          hidePanelResetCredits={p.provider === 'zcode'}
                           ariaLabel={translate(
                             'auto.components.status.bar.UsageRosterPanel.openDetails',
                             'Open usage details'
                           )}
-                        />
+                        >
+                          {p.provider === 'zcode' ? <ZcodeResetCreditAction zcode={p} /> : null}
+                        </ProviderDetailsMenu>
                       )
                     }}
                   />

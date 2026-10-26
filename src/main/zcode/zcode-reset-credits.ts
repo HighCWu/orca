@@ -1,5 +1,5 @@
-// The GLM Coding Plan's quota rate-limit resets ("重置卡"): query the available card inventory
-// from the same business API host the quota endpoint uses.
+// The GLM Coding Plan's quota rate-limit resets ("重置卡"): query the available card inventory and
+// spend one against a window, on the same business API host the quota endpoint uses.
 //
 // Auth contract (mirrors the reference BigModelUsageQuotaProvider): `Authorization` carries the
 // zcode JWT, `X-Bigmodel-Authorization` carries the coding-plan MaaS JWT of the active family
@@ -44,7 +44,29 @@ const resetStatusDataSchema = z.object({
     .default([])
 })
 
+const resetUseDataSchema = z.looseObject({
+  used: z.literal(true)
+})
+
 const resetAccountSchema = z.looseObject({ id: z.string().trim().min(1) })
+
+const resetOpportunityDataSchema = z.union([
+  z.looseObject({ granted: z.literal(true) }),
+  z.looseObject({ granted: z.literal(false), next_try_at: z.number().int().positive() })
+])
+
+/** The server's eligibility verdict: granted (a card was issued into /status) or denied until
+ *  `nextTryAt` (the server-side rate boundary — must be honored or every later call re-throttles). */
+export type ZcodeResetOpportunity = { granted: true } | { granted: false; nextTryAt: number }
+
+export class ZcodeResetOpportunityThrottledError extends Error {
+  constructor(readonly nextTryAt: number | null) {
+    super('zcode rate-limit reset opportunity request was throttled')
+    this.name = 'ZcodeResetOpportunityThrottledError'
+  }
+}
+
+export type ZcodeResetType = 'FIVE_HOUR' | 'WEEK'
 
 function resetTimestamp(value: number): number {
   return value < 10_000_000_000 ? value * 1000 : value
@@ -211,4 +233,99 @@ export async function fetchZcodeResetCredits(options: {
       ? { weekAvailableCount: weekCards.length, weekNextExpiresAt: weekCards[0].expire_at }
       : {})
   }
+}
+
+/** Runs the account-level eligibility check that makes the server issue new rate-limit resets. The
+ *  reference client polls this while the quota UI is active; without it /status never grows. */
+export async function requestZcodeResetOpportunity(options: {
+  credentialStorePath: string
+  idempotencyKey: string
+  accountId?: string
+  signal?: AbortSignal
+}): Promise<ZcodeResetOpportunity> {
+  const facts = readZcodeResetCredentialFacts(options.credentialStorePath)
+  if (!facts) {
+    throw new Error('zcode rate-limit reset credentials are not configured')
+  }
+  if (options.accountId && options.accountId !== facts.accountId) {
+    throw new Error('zcode reset-credit CLI account changed before opportunity request')
+  }
+  const idempotencyKey = options.idempotencyKey.trim()
+  if (!idempotencyKey || idempotencyKey.length > 64) {
+    throw new Error('zcode rate-limit reset idempotency key must be 1-64 chars')
+  }
+  let response: Response
+  try {
+    response = await fetch(`${facts.origin}${RESET_BASE_PATH}/opportunity`, {
+      method: 'POST',
+      headers: resetHeaders(facts),
+      body: JSON.stringify({ idempotency_key: idempotencyKey }),
+      signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
+    })
+  } catch (error) {
+    throw new Error(
+      `zcode rate-limit reset opportunity failed: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+  if (response.status === 429) {
+    await cancelUnreadResponseBody(response)
+    throw new ZcodeResetOpportunityThrottledError(null)
+  }
+  const envelope = await readResetEnvelope(response)
+  if (!envelope) {
+    throw new Error(`zcode rate-limit reset opportunity failed (${response.status})`)
+  }
+  const data = resetOpportunityDataSchema.safeParse(envelope.data)
+  if (!data.success) {
+    throw new Error('zcode rate-limit reset opportunity response was not understood')
+  }
+  if (data.data.granted === false) {
+    return { granted: false, nextTryAt: data.data.next_try_at }
+  }
+  return { granted: true }
+}
+
+/** Spends one rate-limit reset of `resetType` on this account. `idempotencyKey` must be stable per
+ *  attempt so a retry cannot spend two cards; the server answers `{used: true}` on success. */
+export async function redeemZcodeResetCredit(options: {
+  credentialStorePath: string
+  resetType: ZcodeResetType
+  idempotencyKey: string
+  accountId?: string
+  credentialHost?: ZcodeCredentialHost
+  signal?: AbortSignal
+}): Promise<{ used: true }> {
+  const facts = readZcodeResetCredentialFacts(options.credentialStorePath, options.credentialHost)
+  if (!facts) {
+    throw new Error('zcode rate-limit reset credentials are not configured')
+  }
+  if (options.accountId && options.accountId !== facts.accountId) {
+    throw new Error('zcode reset-credit CLI account changed before redemption')
+  }
+  const idempotencyKey = options.idempotencyKey.trim()
+  if (!idempotencyKey || idempotencyKey.length > 64) {
+    throw new Error('zcode rate-limit reset idempotency key must be 1-64 chars')
+  }
+  let response: Response
+  try {
+    response = await fetch(`${facts.origin}${RESET_BASE_PATH}/use`, {
+      method: 'POST',
+      headers: resetHeaders(facts),
+      body: JSON.stringify({ idempotency_key: idempotencyKey, reset_type: options.resetType }),
+      signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
+    })
+  } catch (error) {
+    throw new Error(
+      `zcode rate-limit reset use failed: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+  const envelope = await readResetEnvelope(response)
+  if (!envelope) {
+    throw new Error(`zcode rate-limit reset use failed (${response.status})`)
+  }
+  const data = resetUseDataSchema.safeParse(envelope.data)
+  if (!data.success) {
+    throw new Error('zcode rate-limit reset use was not confirmed')
+  }
+  return { used: true }
 }

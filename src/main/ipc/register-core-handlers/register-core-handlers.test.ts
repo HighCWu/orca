@@ -430,6 +430,20 @@ vi.mock('../native-chat', () => ({
 import { agentSessionRefusalError } from '../../../shared/agent-session-wire-refusals'
 import { recordStructuredAgentSessionHostInstallRefusal } from '../../runtime/structured-agent-session-host-refusal'
 import { registerCoreHandlers } from './register-core-handlers'
+import { ZcodeResetCreditCoordinator } from '../../zcode/zcode-reset-credit-coordinator'
+import { EMPTY_ZCODE_RESET_CREDIT_ATTEMPTS } from '../../../shared/zcode-reset-credit-attempts'
+import { createEmptyRateLimitState } from '../../../shared/rate-limit-state-factory'
+
+const makeZcodeResetCreditCoordinator = (): ZcodeResetCreditCoordinator =>
+  new ZcodeResetCreditCoordinator({
+    store: {
+      getZcodeResetCreditAttempts: () => EMPTY_ZCODE_RESET_CREDIT_ATTEMPTS,
+      replaceZcodeResetCreditAttemptsAndFlush: () => Promise.resolve()
+    },
+    rateLimits: {
+      consumeZcodeResetCredit: () => Promise.resolve(createEmptyRateLimitState())
+    }
+  })
 
 let registeredAiVaultOptions: {
   ensureStructuredSessionOwnership: () => Promise<void>
@@ -528,6 +542,7 @@ describe('registerCoreHandlers', () => {
     const zcodeUsage = { marker: 'zcodeUsage' }
     const codexAccounts = { marker: 'codexAccounts', runtimeHomeService: { marker: 'runtimeHome' } }
     const claudeAccounts = { marker: 'claudeAccounts' }
+    const zcodeResetCredits = makeZcodeResetCreditCoordinator()
     const rateLimits = { marker: 'rateLimits' }
     const agentAwakeService = { marker: 'agentAwakeService' }
     const onBeforeRelaunch = vi.fn()
@@ -545,6 +560,7 @@ describe('registerCoreHandlers', () => {
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
       zcodeUsage as never,
       codexAccounts as never,
+      zcodeResetCredits,
       claudeAccounts as never,
       rateLimits as never,
       null,
@@ -599,7 +615,11 @@ describe('registerCoreHandlers', () => {
     expect(registerZcodePlanCredentialsHandlersMock).toHaveBeenCalledWith(rateLimits)
     expect(registerGrokAccountHandlersMock).toHaveBeenCalled()
     expect(registerCursorAccountHandlersMock).toHaveBeenCalled()
-    expect(registerRateLimitHandlersMock).toHaveBeenCalledWith(rateLimits, codexAccounts)
+    expect(registerRateLimitHandlersMock).toHaveBeenCalledWith(
+      rateLimits,
+      codexAccounts,
+      zcodeResetCredits
+    )
     expect(registerGitHubHandlersMock).toHaveBeenCalledWith(store, stats)
     expect(registerLinearHandlersMock).toHaveBeenCalled()
     expect(registerJiraHandlersMock).toHaveBeenCalled()
@@ -784,6 +804,7 @@ describe('registerCoreHandlers', () => {
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
       zcodeUsage2 as never,
       codexAccounts2 as never,
+      makeZcodeResetCreditCoordinator(),
       claudeAccounts2 as never,
       rateLimits2 as never,
       42

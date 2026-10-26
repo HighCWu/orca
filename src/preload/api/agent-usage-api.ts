@@ -9,7 +9,8 @@ import type { ZcodeUsageBreakdownKind, ZcodeUsageSnapshot } from '../../shared/z
 import type {
   CodexRateLimitResetResult,
   RateLimitRuntimeTarget,
-  RateLimitState
+  RateLimitState,
+  ZcodeRateLimitResetResult
 } from '../../shared/rate-limit-types'
 
 export type UsageProviderSnapshot = {
@@ -55,6 +56,7 @@ export type RateLimitsApi = {
   refresh: () => Promise<RateLimitState>
   refreshCodexForTarget: (target: RateLimitRuntimeTarget) => Promise<RateLimitState>
   consumeCodexResetCredit: () => Promise<CodexRateLimitResetResult>
+  consumeZcodeResetCredit: (resetType?: 'FIVE_HOUR' | 'WEEK') => Promise<ZcodeRateLimitResetResult>
   refreshClaudeForTarget: (target: RateLimitRuntimeTarget) => Promise<RateLimitState>
   fetchInactiveClaudeAccounts: () => Promise<void>
   fetchInactiveCodexAccounts: () => Promise<void>

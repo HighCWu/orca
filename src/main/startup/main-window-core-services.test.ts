@@ -31,6 +31,7 @@ const {
       museUsage: {},
       zcodeUsage: {},
       codexAccounts: {},
+      zcodeResetCredits: {},
       claudeAccounts: {},
       rateLimits: { attach: vi.fn(), start: vi.fn() },
       automations: { setWebContents: vi.fn(), start: vi.fn() },

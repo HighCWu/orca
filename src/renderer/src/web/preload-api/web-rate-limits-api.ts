@@ -152,6 +152,8 @@ export function createRateLimitsApi(): NonNullable<Partial<PreloadApi>['rateLimi
       outcome: 'noCredit',
       state: await readRateLimits(false)
     }),
+    // Why: redemption is desktop-only; a web tab just sees the unchanged server usage.
+    consumeZcodeResetCredit: async () => ({ state: await readRateLimits(false) }),
     refreshClaudeForTarget: refresh,
     fetchInactiveClaudeAccounts: refreshInactive,
     fetchInactiveCodexAccounts: refreshInactive,

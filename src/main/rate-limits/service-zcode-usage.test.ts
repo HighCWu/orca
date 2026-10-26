@@ -10,6 +10,7 @@ import { fetchCodexRateLimits } from './codex-fetcher'
 import type * as ZcodeUsageFetcherModule from './zcode-usage-fetcher'
 import { fetchZcodeRateLimits } from './zcode-usage-fetcher'
 import { hasZcodePlanApiKey } from '../zcode/zcode-plan-api-key-store'
+import { requestZcodeResetOpportunity } from '../zcode/zcode-reset-credits'
 import {
   deferred,
   okProvider,
@@ -49,8 +50,11 @@ vi.mock('./zcode-usage-fetcher', async (importOriginal) => ({
 }))
 
 vi.mock('../zcode/zcode-reset-credits', () => ({
+  redeemZcodeResetCredit: vi.fn(),
   fetchZcodeResetCredits: vi.fn(() => Promise.resolve(null)),
-  readZcodeResetAccountId: vi.fn(() => null)
+  readZcodeResetAccountId: vi.fn(() => null),
+  requestZcodeResetOpportunity: vi.fn(),
+  ZcodeResetOpportunityThrottledError: class extends Error {}
 }))
 
 vi.mock('./minimax/minimax-fetcher', () => ({
@@ -112,6 +116,7 @@ describe('RateLimitService zcode plan credentials', () => {
     expect(state.zcode?.status).toBe('ok')
     expect(state.zcode?.session?.usedPercent).toBe(33)
     expect(state.zcodePlanApiKeyConfigured).toBe(true)
+    expect(requestZcodeResetOpportunity).not.toHaveBeenCalled()
   })
 
   it('passes no plan credential while no key is saved and still fetches via the CLI config', async () => {
