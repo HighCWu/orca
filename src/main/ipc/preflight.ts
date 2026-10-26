@@ -11,6 +11,7 @@ import type {
 } from '../preflight/agent-detection'
 
 import { readZCodeInteractiveCapability } from '../zcode/interactive-capability'
+import { resolveZcodeCliInvocation } from '../zcode/zcode-cli-invocation'
 
 export function registerPreflightHandlers(): void {
   ipcMain.handle(
@@ -27,8 +28,34 @@ export function registerPreflightHandlers(): void {
     detectAgentsOnHost({ kind: 'local', context: args })
   )
 
-  ipcMain.handle('preflight:zcodeInteractiveCapability', async () =>
-    readZCodeInteractiveCapability()
+  ipcMain.handle(
+    'preflight:zcodeInteractiveCapability',
+    async (_event, args?: { commandOverride?: string }) =>
+      readZCodeInteractiveCapability(
+        resolveZcodeCliInvocation({
+          pathEnv: process.env.PATH ?? process.env.Path,
+          ...(args?.commandOverride
+            ? { commandSettings: { agentCmdOverrides: { zcode: args.commandOverride } } }
+            : {})
+        })
+      )
+  )
+
+  ipcMain.handle(
+    'preflight:zcodeSetupInvocation',
+    async (_event, args: { commandOverride?: string; cliArgs: string[] }) => {
+      const invocation = resolveZcodeCliInvocation({
+        pathEnv: process.env.PATH ?? process.env.Path,
+        ...(args.commandOverride
+          ? { commandSettings: { agentCmdOverrides: { zcode: args.commandOverride } } }
+          : {})
+      })
+      return {
+        command: invocation.command,
+        args: [...invocation.prefixArgs, ...args.cliArgs],
+        env: invocation.envOverlay
+      }
+    }
   )
 
   ipcMain.handle('preflight:refreshAgents', async (_event, args?: PreflightRuntimeContext) => {

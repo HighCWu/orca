@@ -9,16 +9,26 @@ import {
   getPreflightWslTarget,
   type PreflightRuntimeContext
 } from '../ipc/preflight-runtime-target'
+import { readZCodeInteractiveCapability } from '../zcode/interactive-capability'
+import { resolveZcodeCliInvocation } from '../zcode/zcode-cli-invocation'
 import { detectAgentCommandsOnHost } from './agent-command-detection'
 
 export async function detectInstalledAgents(context?: PreflightRuntimeContext): Promise<string[]> {
-  const runtime = getPreflightWslTarget(context) ? 'wsl' : process.platform
+  const wslTarget = getPreflightWslTarget(context)
+  const runtime = wslTarget ? 'wsl' : process.platform
   const commands = getTuiAgentDetectionProbeCommands(KNOWN_TUI_AGENT_DETECTION_COMMANDS, runtime)
-  return resolveDetectedTuiAgentIds(
+  const detected = resolveDetectedTuiAgentIds(
     KNOWN_TUI_AGENT_DETECTION_COMMANDS,
     await detectAgentCommandsOnHost(commands, { context }),
     runtime
   )
+  if (wslTarget || !detected.includes('zcode')) {
+    return detected
+  }
+  const capability = await readZCodeInteractiveCapability(
+    resolveZcodeCliInvocation({ pathEnv: process.env.PATH ?? process.env.Path })
+  )
+  return capability === 'missing-tui' ? detected.filter((agent) => agent !== 'zcode') : detected
 }
 
 export async function detectInstalledAgentsWithShellPathHydration(
