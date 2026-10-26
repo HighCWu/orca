@@ -12,6 +12,7 @@ import {
   AddClaudeFromConfigDirParams,
   AddCodexFromHomeParams,
   ConsumeCodexResetCreditParams,
+  ConsumeZcodeResetCreditParams,
   ListAccountsParams,
   RemoveAccountParams,
   SelectAccountParams,
@@ -164,6 +165,12 @@ export const ACCOUNT_METHODS = [
     params: ConsumeCodexResetCreditParams,
     handler: async (params, { runtime }) =>
       runtime.consumeCodexRateLimitResetCredit(params.idempotencyKey, params.expectedScope)
+  }),
+  defineMethod({
+    name: 'accounts.consumeZcodeResetCredit',
+    permission: 'accounts-admin',
+    params: ConsumeZcodeResetCreditParams,
+    handler: async (params, { runtime }) => runtime.consumeZcodeResetCredit(params.resetType)
   }),
   defineMethod({
     name: 'accounts.removeClaude',

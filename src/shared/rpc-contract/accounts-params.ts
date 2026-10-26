@@ -62,6 +62,12 @@ export const ConsumeCodexResetCreditParams = z
   })
   .strict()
 
+// Why: no client key or scope — the host coordinator owns the idempotency key and zcode has one
+// implicit account, so the phone names only which card window to spend.
+export const ConsumeZcodeResetCreditParams = z
+  .object({ resetType: z.enum(['FIVE_HOUR', 'WEEK']) })
+  .strict()
+
 export const AddClaudeFromConfigDirParams = z.object({
   configDir: z.string().min(1, 'Missing configDir'),
   runtime: z.enum(['host', 'wsl']).optional(),

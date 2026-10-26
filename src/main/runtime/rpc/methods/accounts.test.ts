@@ -232,6 +232,23 @@ describe('account RPC methods', () => {
     expect(consumeCodexRateLimitResetCredit).toHaveBeenCalledWith(idempotencyKey, expectedScope)
   })
 
+  it('forwards the reset type when consuming a zcode rate-limit reset', async () => {
+    const result = { snapshot: { claude: null, codex: null } }
+    const consumeZcodeResetCredit = vi.fn().mockResolvedValue(result)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handler only forwards to this one runtime member, matching the Codex-consume test above.
+    const runtime = { consumeZcodeResetCredit } as unknown as OrcaRuntimeService
+    const reset = method('accounts.consumeZcodeResetCredit')
+    if (isStreamingMethod(reset)) {
+      throw new Error('accounts.consumeZcodeResetCredit must be a request method')
+    }
+
+    expect(reset.params?.parse({ resetType: 'FIVE_HOUR' })).toEqual({ resetType: 'FIVE_HOUR' })
+    expect(() => reset.params?.parse({ resetType: 'MONTH' })).toThrow()
+    expect(() => reset.params?.parse({ resetType: 'FIVE_HOUR', extra: true })).toThrow()
+    await expect(reset.handler({ resetType: 'FIVE_HOUR' }, { runtime })).resolves.toBe(result)
+    expect(consumeZcodeResetCredit).toHaveBeenCalledWith('FIVE_HOUR')
+  })
+
   it('forwards the exact WSL target when selecting a Codex account', async () => {
     const selectCodexAccountForTarget = vi
       .fn()

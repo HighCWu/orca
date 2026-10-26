@@ -141,7 +141,7 @@ export function handleRequest(
           runtimeId: 'mock-runtime',
           protocolVersion: DESKTOP_PROTOCOL_VERSION,
           minCompatibleMobileVersion: MIN_COMPATIBLE_MOBILE_VERSION,
-          capabilities: ['accounts.codex-reset-credit.v1'],
+          capabilities: ['accounts.codex-reset-credit.v1', 'accounts.zcode-reset-credit.v1'],
           graphStatus: 'ready',
           windowCount: 1,
           tabCount: 2,

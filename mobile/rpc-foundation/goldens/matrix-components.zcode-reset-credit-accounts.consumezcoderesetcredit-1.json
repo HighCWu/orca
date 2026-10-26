@@ -1,0 +1,787 @@
+{
+  "goldenFormatVersion": 6,
+  "operation": "accounts.zcode-reset-credit",
+  "family": "components.zcode-reset-credit",
+  "namedDeltas": [],
+  "values": {
+    "0003a9d2e82c": {
+      "settled": {
+        "resetType": "FIVE_HOUR",
+        "snapshot": {
+          "claude": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "rateLimits": {
+            "claude": {
+              "$rpc": "null"
+            },
+            "claudeTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "codex": {
+              "$rpc": "null"
+            },
+            "codexTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "inactiveClaudeAccounts": [],
+            "inactiveCodexAccounts": [],
+            "zcode": {
+              "error": {
+                "$rpc": "null"
+              },
+              "provider": "zcode",
+              "rateLimitResetCredits": {
+                "availableCount": 0
+              },
+              "session": {
+                "$rpc": "null"
+              },
+              "status": "ok",
+              "updatedAt": 1700000000000,
+              "weekly": {
+                "$rpc": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    "0a07efb53f1e": {
+      "settled": {
+        "$rpc": "null"
+      }
+    },
+    "0c1fcc1be14e": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "transport failure",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "19d3a48a6df8": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "error": "refused"
+          }
+        }
+      }
+    },
+    "1e9f2ff603aa": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "32a7c0ae7918": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "outer refused",
+        "isRpcDeliveryUnknown": false
+      }
+    },
+    "3a9710cf8331": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "error": {
+              "message": "inner refused"
+            },
+            "ok": false
+          }
+        }
+      }
+    },
+    "4948ae45a887": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "error": "inner refused",
+            "ok": false
+          }
+        }
+      }
+    },
+    "513aec2efe83": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "method_not_found",
+            "message": "Unknown method"
+          },
+          "id": "frame-1",
+          "ok": false
+        }
+      }
+    },
+    "6cee932ea92f": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": ""
+          },
+          "id": "frame-1",
+          "ok": false
+        }
+      }
+    },
+    "82bfab9533fb": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"accounts.consumeZcodeResetCredit\",\"params\":{\"resetType\":\"FIVE_HOUR\"}}"
+    },
+    "8c4011879590": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": "outer refused"
+          },
+          "id": "frame-1",
+          "ok": false
+        }
+      }
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "987b15dbc028": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "a947768bc0ed": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "transport failure",
+        "isRpcDeliveryUnknown": true
+      }
+    },
+    "b948e8307e81": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Unknown method",
+        "isRpcDeliveryUnknown": false
+      }
+    },
+    "bdfd2e282e9e": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "snapshot": {
+              "claude": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "codex": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "rateLimits": {
+                "claude": {
+                  "$rpc": "null"
+                },
+                "codex": {
+                  "$rpc": "null"
+                },
+                "inactiveClaudeAccounts": [],
+                "inactiveCodexAccounts": [],
+                "zcode": {
+                  "error": {
+                    "$rpc": "null"
+                  },
+                  "provider": "zcode",
+                  "rateLimitResetCredits": {
+                    "availableCount": 0
+                  },
+                  "session": {
+                    "$rpc": "null"
+                  },
+                  "status": "ok",
+                  "updatedAt": 1700000000000,
+                  "weekly": {
+                    "$rpc": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "c130a9bccbc5": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true
+        }
+      }
+    },
+    "c7584e82c72f": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "",
+        "isRpcDeliveryUnknown": true
+      }
+    },
+    "e1ee0a1ae721": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Invalid reset response from host",
+        "isRpcDeliveryUnknown": false
+      }
+    },
+    "e7ebdc3687be": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "$rpc": "null"
+          }
+        }
+      }
+    },
+    "e978fd14e3a9": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "claude": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "codex": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "rateLimits": {
+          "claude": {
+            "$rpc": "null"
+          },
+          "claudeTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "$rpc": "null"
+          },
+          "codexTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "inactiveClaudeAccounts": [],
+          "inactiveCodexAccounts": [],
+          "zcode": {
+            "error": {
+              "$rpc": "null"
+            },
+            "provider": "zcode",
+            "rateLimitResetCredits": {
+              "availableCount": 0
+            },
+            "session": {
+              "$rpc": "null"
+            },
+            "status": "ok",
+            "updatedAt": 1700000000000,
+            "weekly": {
+              "$rpc": "null"
+            }
+          }
+        }
+      }
+    },
+    "f3b516f62081": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "",
+        "isRpcDeliveryUnknown": false
+      }
+    }
+  },
+  "recording": {
+    "scenario": "matrix-components.zcode-reset-credit-accounts.consumezcoderesetcredit-1",
+    "checkpoints": [
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.prelude:requested",
+        "observation": {
+          "sender": ["987b15dbc028"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "9270aeb7d9c6"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.normal:consumed",
+        "observation": {
+          "sender": ["bdfd2e282e9e"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e978fd14e3a9"
+          },
+          "state": "0003a9d2e82c",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.result-absent:consumed",
+        "observation": {
+          "sender": ["c130a9bccbc5"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e1ee0a1ae721"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.result-null:consumed",
+        "observation": {
+          "sender": ["e7ebdc3687be"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e1ee0a1ae721"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.inner-ok-missing:consumed",
+        "observation": {
+          "sender": ["19d3a48a6df8"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e1ee0a1ae721"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.inner-false-string-error:consumed",
+        "observation": {
+          "sender": ["4948ae45a887"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e1ee0a1ae721"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.inner-false-object-error:consumed",
+        "observation": {
+          "sender": ["3a9710cf8331"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e1ee0a1ae721"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.outer-refused:consumed",
+        "observation": {
+          "sender": ["8c4011879590"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "32a7c0ae7918"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.outer-refused-no-message:consumed",
+        "observation": {
+          "sender": ["6cee932ea92f"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "f3b516f62081"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.method-not-found:consumed",
+        "observation": {
+          "sender": ["513aec2efe83"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "b948e8307e81"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.transport-rejection:consumed",
+        "observation": {
+          "sender": ["0c1fcc1be14e"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "a947768bc0ed"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "zcode-five-hour-reset-credit-consumed.transport-rejection-no-message:consumed",
+        "observation": {
+          "sender": ["1e9f2ff603aa"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "c7584e82c72f"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

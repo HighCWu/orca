@@ -11,6 +11,7 @@ import { browserMountAdapters } from './browser-mount-adapters'
 import { clientEventStreamMountAdapters } from './client-event-stream-mount-adapters'
 import { clipboardImageMountAdapters } from './clipboard-image-mount-adapters'
 import { codexResetCreditMountAdapters } from './codex-reset-credit-mount-adapters'
+import { zcodeResetCreditMountAdapters } from './zcode-reset-credit-mount-adapters'
 import { desktopNotificationStreamMountAdapters } from './desktop-notification-stream-mount-adapters'
 import { dictationMountAdapters } from './dictation-mount-adapters'
 import { diffReviewActionMountAdapters } from './diff-review-action-mount-adapters'
@@ -103,6 +104,7 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
   { source: 'client-event-stream-mount-adapters.ts', mounts: clientEventStreamMountAdapters },
   { source: 'clipboard-image-mount-adapters.ts', mounts: clipboardImageMountAdapters },
   { source: 'codex-reset-credit-mount-adapters.ts', mounts: codexResetCreditMountAdapters },
+  { source: 'zcode-reset-credit-mount-adapters.ts', mounts: zcodeResetCreditMountAdapters },
   {
     source: 'desktop-notification-stream-mount-adapters.ts',
     mounts: desktopNotificationStreamMountAdapters
