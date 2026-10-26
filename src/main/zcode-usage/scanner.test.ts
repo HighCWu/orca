@@ -1,0 +1,131 @@
+import { mkdtempSync, rmSync, utimesSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { getLocalUsageDay } from '../usage/usage-calendar-range'
+import type { UsageWorktreeResolver } from '../usage/usage-worktree-resolver'
+import { parseZcodeUsageDatabase, scanZcodeUsageDatabases } from './scanner'
+import { writeZcodeUsageDatabase, ZCODE_USAGE_FIXTURE_EPOCH_MS } from './zcode-usage-sqlite-fixture'
+
+const DAY = getLocalUsageDay(new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS).toISOString())
+
+const resolveRepoWorktree: UsageWorktreeResolver = (cwd) =>
+  cwd === '/repo'
+    ? {
+        repoId: 'repo-1',
+        worktreeId: 'wt-1',
+        path: '/repo',
+        displayName: 'repo'
+      }
+    : null
+
+describe('zcode usage scanner', () => {
+  let dbRoot: string
+  let dbPath: string
+  let previousZcodeDb: string | undefined
+
+  beforeAll(() => {
+    dbRoot = mkdtempSync(join(tmpdir(), 'orca-zcode-usage-'))
+    dbPath = join(dbRoot, 'db.sqlite')
+    writeZcodeUsageDatabase(dbPath, {
+      sessions: [
+        { id: 'session_main', directory: '/repo' },
+        { id: 'session_sub', directory: '/repo', taskType: 'subagent_child' }
+      ],
+      usage: [
+        {
+          id: 'u1',
+          sessionId: 'session_main',
+          inputTokens: 900,
+          outputTokens: 100,
+          reasoningTokens: 40,
+          cacheReadInputTokens: 800,
+          cacheCreationInputTokens: 20
+        },
+        {
+          id: 'u2',
+          sessionId: 'session_sub',
+          modelId: null,
+          providerId: 'account:plan',
+          taskType: 'subagent_child',
+          startedAt: ZCODE_USAGE_FIXTURE_EPOCH_MS + 60_000,
+          completedAt: ZCODE_USAGE_FIXTURE_EPOCH_MS + 90_000,
+          inputTokens: 500,
+          outputTokens: 10,
+          cacheReadInputTokens: 480
+        },
+        {
+          // Zero-token rows (cancelled before any completion) never count.
+          id: 'u3',
+          sessionId: 'session_main',
+          status: 'cancelled'
+        },
+        {
+          // An orphaned row whose session row is gone still counts as unscoped usage.
+          id: 'u4',
+          sessionId: 'session_gone',
+          startedAt: ZCODE_USAGE_FIXTURE_EPOCH_MS + 120_000,
+          completedAt: ZCODE_USAGE_FIXTURE_EPOCH_MS + 130_000,
+          inputTokens: 70,
+          outputTokens: 30
+        }
+      ]
+    })
+    previousZcodeDb = process.env.ZCODE_DB
+    process.env.ZCODE_DB = dbPath
+  })
+
+  afterAll(() => {
+    if (previousZcodeDb === undefined) {
+      delete process.env.ZCODE_DB
+    } else {
+      process.env.ZCODE_DB = previousZcodeDb
+    }
+    rmSync(dbRoot, { recursive: true, force: true })
+  })
+
+  it('parses model_usage rows into sessions and daily aggregates', async () => {
+    const processed = await parseZcodeUsageDatabase(dbPath, resolveRepoWorktree)
+
+    expect(processed.sessions).toHaveLength(3)
+    const main = processed.sessions.find((session) => session.sessionId === 'session_main')
+    expect(main).toMatchObject({
+      eventCount: 1,
+      totalInputTokens: 900,
+      // Cache reads and cache writes are subsets of the recorded input total.
+      totalCachedInputTokens: 820,
+      totalOutputTokens: 100,
+      totalReasoningOutputTokens: 40,
+      totalTokens: 1_040,
+      primaryModel: 'GLM-5.3',
+      primaryProjectLabel: 'repo',
+      primaryWorktreeId: 'wt-1'
+    })
+    const sub = processed.sessions.find((session) => session.sessionId === 'session_sub')
+    // A NULL model_id falls back to the provider id.
+    expect(sub).toMatchObject({ primaryModel: 'account:plan', primaryWorktreeId: 'wt-1' })
+    const orphan = processed.sessions.find((session) => session.sessionId === 'session_gone')
+    expect(orphan).toMatchObject({ totalTokens: 100, primaryProjectLabel: 'Unknown location' })
+
+    expect(processed.dailyAggregates).toHaveLength(3)
+    expect(processed.dailyAggregates.every((row) => row.day === DAY)).toBe(true)
+  })
+
+  it('reuses a scanned database until its stat changes, then reparses it', async () => {
+    const first = await scanZcodeUsageDatabases([], [], undefined)
+    expect(first.processedDatabases).toHaveLength(1)
+
+    // Touch without a content change reuses the cache; sessions come out identical.
+    utimesSync(dbPath, new Date(), new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 5_000))
+    const reused = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
+    expect(reused.sessions).toEqual(first.sessions)
+
+    rmSync(dbPath)
+    writeZcodeUsageDatabase(dbPath, {
+      usage: [{ id: 'x1', sessionId: 's_new', inputTokens: 5, outputTokens: 5 }]
+    })
+    const grown = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
+    expect(grown.sessions).toHaveLength(1)
+    expect(grown.sessions[0]).toMatchObject({ sessionId: 's_new', totalTokens: 10 })
+  })
+})

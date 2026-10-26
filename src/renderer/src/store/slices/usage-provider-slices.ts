@@ -19,6 +19,11 @@ import type {
   MuseUsageScope,
   MuseUsageSnapshot
 } from '../../../../shared/muse-usage-types'
+import type {
+  ZcodeUsageRange,
+  ZcodeUsageScope,
+  ZcodeUsageSnapshot
+} from '../../../../shared/zcode-usage-types'
 import type { AppState } from '../types'
 
 type UsageSnapshot = {
@@ -274,10 +279,13 @@ type OpenCodeUsageTypes = UsageProviderTypes<
 
 type MuseUsageTypes = UsageProviderTypes<MuseUsageScope, MuseUsageRange, MuseUsageSnapshot>
 
+type ZcodeUsageTypes = UsageProviderTypes<ZcodeUsageScope, ZcodeUsageRange, ZcodeUsageSnapshot>
+
 export type ClaudeUsageSlice = ProviderUsageSlice<'claude', 'Claude', ClaudeUsageTypes>
 export type CodexUsageSlice = ProviderUsageSlice<'codex', 'Codex', CodexUsageTypes>
 export type OpenCodeUsageSlice = ProviderUsageSlice<'openCode', 'OpenCode', OpenCodeUsageTypes>
 export type MuseUsageSlice = ProviderUsageSlice<'muse', 'Muse', MuseUsageTypes>
+export type ZcodeUsageSlice = ProviderUsageSlice<'zcode', 'Zcode', ZcodeUsageTypes>
 
 export const createClaudeUsageSlice = createUsageProviderSlice<
   'claude',
@@ -321,4 +329,13 @@ export const createMuseUsageSlice = createUsageProviderSlice<'muse', 'Muse', Mus
   initialRange: '30d',
   getApi: () => window.api.museUsage,
   hasCachedData: (state) => state.hasAnyMuseData
+})
+
+export const createZcodeUsageSlice = createUsageProviderSlice<'zcode', 'Zcode', ZcodeUsageTypes>({
+  prefix: 'zcode',
+  name: 'Zcode',
+  initialScope: 'orca',
+  initialRange: '30d',
+  getApi: () => window.api.zcodeUsage,
+  hasCachedData: (state) => state.hasAnyZcodeData
 })
