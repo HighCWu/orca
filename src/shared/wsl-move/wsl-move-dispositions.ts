@@ -91,6 +91,7 @@ export const PERSISTED_STATE_DISPOSITIONS = {
   onboarding: notApplicableDisposition(62),
   featureInteractionTelemetryBuckets: notApplicableDisposition(62),
   codexResetCreditAttemptLedger: notApplicableDisposition(62),
+  zcodeResetCreditAttempts: notApplicableDisposition(62),
   nativeChatUpgradeTipAudience: notApplicableDisposition(62)
 } as const satisfies Record<keyof PersistedState, WslMoveFieldDisposition>
 

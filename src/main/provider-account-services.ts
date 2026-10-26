@@ -13,6 +13,7 @@ import { isWslDistroRunningForBackgroundWork } from './wsl-background-distro-gat
 import { readMiniMaxSessionCookie } from './minimax/minimax-cookie-store'
 import { readMiniMaxApiKey } from './minimax/minimax-api-key-store'
 import { readZcodePlanApiKey } from './zcode/zcode-plan-api-key-store'
+import { ZcodeResetCreditCoordinator } from './zcode/zcode-reset-credit-coordinator'
 import { readOpenCodeGoApiKey } from './opencode/opencode-go-api-key-store'
 import { setAntigravityNativeCredentialChangeListener } from './antigravity/native-account-host'
 import { createAccountRuntimeTargetSettingsSync } from './rate-limits/account-runtime-target-sync'
@@ -26,6 +27,7 @@ export type ProviderAccountServices = {
   codexAccounts: CodexAccountService
   claudeRuntimeAuth: ClaudeRuntimeAuthService
   claudeAccounts: ClaudeAccountService
+  zcodeResetCredits: ZcodeResetCreditCoordinator
 }
 
 export function createProviderAccountServices(
@@ -176,5 +178,12 @@ export function createProviderAccountServices(
         }
       }))
   })
-  return { rateLimits, codexRuntimeHome, codexAccounts, claudeRuntimeAuth, claudeAccounts }
+  return {
+    rateLimits,
+    codexRuntimeHome,
+    codexAccounts,
+    claudeRuntimeAuth,
+    claudeAccounts,
+    zcodeResetCredits: new ZcodeResetCreditCoordinator({ store, rateLimits })
+  }
 }

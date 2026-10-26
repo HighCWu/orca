@@ -2,7 +2,8 @@ import { ipcRenderer } from 'electron'
 import type {
   CodexRateLimitResetResult,
   RateLimitRuntimeTarget,
-  RateLimitState
+  RateLimitState,
+  ZcodeRateLimitResetResult
 } from '../../shared/rate-limit-types'
 import type { PreloadApi } from '../api-types'
 
@@ -13,6 +14,8 @@ export const rateLimitsApi = {
     ipcRenderer.invoke('rateLimits:refreshCodexForTarget', target),
   consumeCodexResetCredit: (): Promise<CodexRateLimitResetResult> =>
     ipcRenderer.invoke('rateLimits:consumeCodexResetCredit'),
+  consumeZcodeResetCredit: (resetType?: 'FIVE_HOUR' | 'WEEK'): Promise<ZcodeRateLimitResetResult> =>
+    ipcRenderer.invoke('rateLimits:consumeZcodeResetCredit', resetType),
   refreshClaudeForTarget: (target: RateLimitRuntimeTarget): Promise<RateLimitState> =>
     ipcRenderer.invoke('rateLimits:refreshClaudeForTarget', target),
   fetchInactiveClaudeAccounts: (): Promise<void> =>

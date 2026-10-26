@@ -1,8 +1,11 @@
 import { RateLimitServiceFullCycleApplication } from './service-full-cycle-application'
+import { randomUUID } from 'node:crypto'
 import { fetchClaudeRateLimits } from '../claude-fetcher'
 import { fetchCodexRateLimits } from '../codex-fetcher'
 import { fetchGrokRateLimits } from '../grok-fetcher'
 import { readGrokAuthSession } from '../grok-auth'
+import { readZcodeResetAccountId, redeemZcodeResetCredit } from '../../zcode/zcode-reset-credits'
+import { readZcodeUsageCredentials, zcodeCredentialStorePath } from '../zcode-usage-credentials'
 import type { ProviderRateLimits } from './service-types'
 
 export abstract class RateLimitServiceProviderCycles extends RateLimitServiceFullCycleApplication {
@@ -179,5 +182,34 @@ export abstract class RateLimitServiceProviderCycles extends RateLimitServiceFul
       ...this.state,
       grok: this.applyStalePolicy(grok, previousState.grok)
     })
+  }
+
+  /** Spends one five-hour-window rate-limit reset; the next full cycle reads the refreshed quota. */
+  protected async consumeZcodeResetOnCycles(
+    resetType: 'FIVE_HOUR' | 'WEEK',
+    idempotencyKey: string = randomUUID(),
+    accountId?: string
+  ): Promise<string> {
+    const planConfig = this.resolveZcodePlanConfig()
+    if (
+      planConfig.error ||
+      planConfig.config.apiKey ||
+      readZcodeUsageCredentials().status !== 'ok'
+    ) {
+      throw new Error('zcode rate-limit resets require the active ZCode CLI account')
+    }
+    const credentialStorePath = zcodeCredentialStorePath()
+    const resetAccountId = accountId ?? readZcodeResetAccountId(credentialStorePath)
+    if (!resetAccountId) {
+      throw new Error('zcode reset-credit account identity is unavailable')
+    }
+    await redeemZcodeResetCredit({
+      credentialStorePath,
+      resetType,
+      idempotencyKey,
+      accountId: resetAccountId
+    })
+    this.zcodeOpportunityPoll.nextCheckAt = 0
+    return resetAccountId
   }
 }

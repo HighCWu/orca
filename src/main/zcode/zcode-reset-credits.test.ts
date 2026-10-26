@@ -1,11 +1,15 @@
-// The reset-credit inventory client against a stubbed fetch.
+// The reset-credit client against a stubbed fetch: inventory mapping, credential gating, use.
 
 import { createCipheriv, createHash } from 'node:crypto'
 import { afterEach, describe, expect, it } from 'vitest'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fetchZcodeResetCredits, readZcodeResetCredentialFacts } from './zcode-reset-credits'
+import {
+  fetchZcodeResetCredits,
+  readZcodeResetCredentialFacts,
+  redeemZcodeResetCredit
+} from './zcode-reset-credits'
 import type { ZcodeCredentialHost } from './zcode-v2-plan-credentials'
 
 const accountTokens = (overrides: Record<string, string> = {}): Record<string, string> => ({
@@ -135,7 +139,26 @@ describe('zcode reset credits', () => {
     expect(called).toBe(false)
   })
 
-  it('decrypts reset credentials from the configured host', async () => {
+  it('refuses a redemption after its account changes', async () => {
+    const path = store(accountTokens())
+    let called = false
+    globalThis.fetch = () => {
+      called = true
+      return Promise.resolve(json({ code: 200, data: { used: true } }))
+    }
+
+    await expect(
+      redeemZcodeResetCredit({
+        credentialStorePath: path,
+        resetType: 'FIVE_HOUR',
+        idempotencyKey: 'smoke-key-1',
+        accountId: 'another-account'
+      })
+    ).rejects.toThrow('account changed before redemption')
+    expect(called).toBe(false)
+  })
+
+  it('decrypts the v2 credential store before reading inventory and sending reset headers', async () => {
     const host: ZcodeCredentialHost = {
       home: '/test-home',
       platform: 'linux',
@@ -150,11 +173,7 @@ describe('zcode reset credits', () => {
         ])
       )
     )
-    expect(readZcodeResetCredentialFacts(path, host)).toMatchObject({
-      origin: 'https://open.bigmodel.cn',
-      zcodeJwt: 'jwt-1',
-      codingPlanJwt: 'maas-1'
-    })
+    let headers: HeadersInit | undefined
     install(() => json(okStatus))
     await expect(
       fetchZcodeResetCredits({ credentialStorePath: path, host })
@@ -162,6 +181,42 @@ describe('zcode reset credits', () => {
       availableCount: 2,
       weekAvailableCount: 1
     })
+    globalThis.fetch = (_input, init) => {
+      headers = init?.headers
+      return Promise.resolve(json({ code: 200, data: { used: true } }))
+    }
+
+    const facts = readZcodeResetCredentialFacts(path, host)
+    expect(facts?.accountId).toBeTruthy()
+    await redeemZcodeResetCredit({
+      credentialStorePath: path,
+      resetType: 'WEEK',
+      idempotencyKey: 'encrypted-key',
+      credentialHost: host
+    })
+
+    expect(headers).toMatchObject({
+      Authorization: 'Bearer jwt-1',
+      'X-Bigmodel-Authorization': 'maas-1'
+    })
+  })
+
+  it('spends a card with the idempotency key and body the server expects', async () => {
+    const path = store(accountTokens())
+    let seenBody: unknown
+    const bodySpy = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      void input
+      seenBody = init?.body ? JSON.parse(String(init.body)) : undefined
+      return Promise.resolve(json({ code: 200, data: { used: true } }))
+    }
+    globalThis.fetch = bodySpy
+    const used = await redeemZcodeResetCredit({
+      credentialStorePath: path,
+      resetType: 'FIVE_HOUR',
+      idempotencyKey: 'smoke-key-1'
+    })
+    expect(used).toEqual({ used: true })
+    expect(seenBody).toEqual({ idempotency_key: 'smoke-key-1', reset_type: 'FIVE_HOUR' })
   })
 })
 

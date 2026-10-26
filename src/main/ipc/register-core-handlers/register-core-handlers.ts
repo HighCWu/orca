@@ -87,6 +87,7 @@ import type { CodexUsageStore } from '../../codex-usage/store'
 import type { OpenCodeUsageStore } from '../../opencode-usage/store'
 import type { MuseUsageStore } from '../../muse-usage/store'
 import type { RateLimitService } from '../../rate-limits/service'
+import type { ZcodeResetCreditCoordinator } from '../../zcode/zcode-reset-credit-coordinator'
 import type { CodexAccountService } from '../../codex-accounts/service'
 import type { ClaudeAccountService } from '../../claude-accounts/service'
 import type { AutomationService } from '../../automations/service'
@@ -151,6 +152,7 @@ export function registerCoreHandlers(
   openCodeUsage: OpenCodeUsageStore,
   museUsage: MuseUsageStore,
   codexAccounts: CodexAccountService,
+  zcodeResetCredits: ZcodeResetCreditCoordinator,
   claudeAccounts: ClaudeAccountService,
   rateLimits: RateLimitService,
   mainWindowWebContentsId: number | null = null,
@@ -197,7 +199,7 @@ export function registerCoreHandlers(
   registerZcodePlanCredentialsHandlers(rateLimits)
   registerGrokAccountHandlers()
   registerCursorAccountHandlers()
-  registerRateLimitHandlers(rateLimits, codexAccounts)
+  registerRateLimitHandlers(rateLimits, codexAccounts, zcodeResetCredits)
   registerGitHubHandlers(store, stats)
   registerGitLabHandlers(store)
   registerHostedReviewHandlers(store, stats)
