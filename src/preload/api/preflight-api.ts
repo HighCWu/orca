@@ -42,11 +42,23 @@ export type PreflightRuntimeContext = {
   projectRuntime?: ProjectExecutionRuntimeResolution
 }
 
+export type ZcodeSetupInvocation = {
+  command: string
+  args: string[]
+  env: Record<string, string>
+}
+
 export type PreflightApi = {
   check: (args?: PreflightRuntimeContext & { force?: boolean }) => Promise<PreflightStatus>
   detectAgents: (args?: PreflightRuntimeContext) => Promise<string[]>
-  /** Cached in main for the process lifetime. */
-  zcodeInteractiveCapability: () => Promise<ZCodeInteractiveCapability>
+  /** Whether the installed `zcode` can open a session; cached in main per invocation. */
+  zcodeInteractiveCapability: (args?: {
+    commandOverride?: string
+  }) => Promise<ZCodeInteractiveCapability>
+  zcodeSetupInvocation: (args: {
+    commandOverride?: string
+    cliArgs: string[]
+  }) => Promise<ZcodeSetupInvocation>
   refreshAgents: (args?: PreflightRuntimeContext) => Promise<RefreshAgentsResult>
   detectRemoteAgents: (args: { connectionId: string }) => Promise<string[]>
   detectRemoteWindowsTerminalCapabilities: (args: { connectionId: string }) => Promise<{
