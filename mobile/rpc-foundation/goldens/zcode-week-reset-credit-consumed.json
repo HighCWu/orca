@@ -1,0 +1,291 @@
+{
+  "goldenFormatVersion": 6,
+  "operation": "accounts.zcode-reset-credit",
+  "family": "components.zcode-reset-credit",
+  "namedDeltas": [],
+  "values": {
+    "0a07efb53f1e": {
+      "settled": {
+        "$rpc": "null"
+      }
+    },
+    "23bbdda8bca4": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "claude": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "codex": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "rateLimits": {
+          "claude": {
+            "$rpc": "null"
+          },
+          "claudeTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "$rpc": "null"
+          },
+          "codexTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "inactiveClaudeAccounts": [],
+          "inactiveCodexAccounts": [],
+          "zcode": {
+            "error": {
+              "$rpc": "null"
+            },
+            "provider": "zcode",
+            "rateLimitResetCredits": {
+              "availableCount": 1,
+              "weekAvailableCount": 0
+            },
+            "session": {
+              "$rpc": "null"
+            },
+            "status": "ok",
+            "updatedAt": 1700000000000,
+            "weekly": {
+              "resetDescription": {
+                "$rpc": "null"
+              },
+              "resetsAt": {
+                "$rpc": "null"
+              },
+              "usedPercent": 0,
+              "windowMinutes": 10080
+            }
+          }
+        }
+      }
+    },
+    "3a7a7623560c": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "WEEK"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "snapshot": {
+              "claude": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "codex": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "rateLimits": {
+                "claude": {
+                  "$rpc": "null"
+                },
+                "codex": {
+                  "$rpc": "null"
+                },
+                "inactiveClaudeAccounts": [],
+                "inactiveCodexAccounts": [],
+                "zcode": {
+                  "error": {
+                    "$rpc": "null"
+                  },
+                  "provider": "zcode",
+                  "rateLimitResetCredits": {
+                    "availableCount": 1,
+                    "weekAvailableCount": 0
+                  },
+                  "session": {
+                    "$rpc": "null"
+                  },
+                  "status": "ok",
+                  "updatedAt": 1700000000000,
+                  "weekly": {
+                    "resetDescription": {
+                      "$rpc": "null"
+                    },
+                    "resetsAt": {
+                      "$rpc": "null"
+                    },
+                    "usedPercent": 0,
+                    "windowMinutes": 10080
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "42bed913f832": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "WEEK"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "5b9a4a44014b": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"accounts.consumeZcodeResetCredit\",\"params\":{\"resetType\":\"WEEK\"}}"
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "ed0b23627542": {
+      "settled": {
+        "resetType": "WEEK",
+        "snapshot": {
+          "claude": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "rateLimits": {
+            "claude": {
+              "$rpc": "null"
+            },
+            "claudeTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "codex": {
+              "$rpc": "null"
+            },
+            "codexTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "inactiveClaudeAccounts": [],
+            "inactiveCodexAccounts": [],
+            "zcode": {
+              "error": {
+                "$rpc": "null"
+              },
+              "provider": "zcode",
+              "rateLimitResetCredits": {
+                "availableCount": 1,
+                "weekAvailableCount": 0
+              },
+              "session": {
+                "$rpc": "null"
+              },
+              "status": "ok",
+              "updatedAt": 1700000000000,
+              "weekly": {
+                "resetDescription": {
+                  "$rpc": "null"
+                },
+                "resetsAt": {
+                  "$rpc": "null"
+                },
+                "usedPercent": 0,
+                "windowMinutes": 10080
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "recording": {
+    "scenario": "zcode-week-reset-credit-consumed",
+    "checkpoints": [
+      {
+        "id": "requested",
+        "observation": {
+          "sender": ["42bed913f832"],
+          "payloads": ["5b9a4a44014b"],
+          "settlements": {
+            "confirm": "9270aeb7d9c6"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "consumed",
+        "observation": {
+          "sender": ["3a7a7623560c"],
+          "payloads": ["5b9a4a44014b"],
+          "settlements": {
+            "confirm": "23bbdda8bca4"
+          },
+          "state": "ed0b23627542",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

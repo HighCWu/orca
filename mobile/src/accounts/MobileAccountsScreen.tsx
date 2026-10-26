@@ -27,6 +27,7 @@ import {
 import { CodexResetCreditAction } from '../components/CodexResetCreditAction'
 import { useCodexResetCreditAction } from '../components/use-codex-reset-credit-action'
 import { ConfirmModal } from '../components/ConfirmModal'
+import { ZcodeUsageSection } from './zcode-usage-section'
 import { useRouteHandoff } from '../navigation/route-handoff'
 
 type AccountsNotice = { title: string; message: string }
@@ -377,6 +378,15 @@ export function MobileAccountsScreen() {
           <>
             {renderProviderSection('claude', 'Claude')}
             {renderProviderSection('codex', 'Codex')}
+            <ZcodeUsageSection
+              client={client}
+              connected={connState === 'connected'}
+              snapshot={snapshot}
+              busyAccountId={busyAccountId}
+              now={now}
+              onSnapshot={acceptSnapshot}
+              onNotice={setNotice}
+            />
             <View style={styles.footerHint}>
               <User size={14} color={colors.textMuted} />
               <Text style={styles.footerHintText}>

@@ -31,9 +31,15 @@ export type UsageBarState = {
 
 export function getActiveProviderRateLimits(
   snapshot: AccountsSnapshot,
-  provider: ProviderKey
+  provider: ProviderKey | 'zcode'
 ): ProviderRateLimits | null {
-  return provider === 'claude' ? snapshot.rateLimits.claude : snapshot.rateLimits.codex
+  if (provider === 'claude') {
+    return snapshot.rateLimits.claude
+  }
+  if (provider === 'zcode') {
+    return snapshot.rateLimits.zcode ?? null
+  }
+  return snapshot.rateLimits.codex
 }
 
 export function getInactiveProviderUsage(

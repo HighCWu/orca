@@ -92,6 +92,26 @@ export function agentDisplayLabel(row: RuntimeWorktreeAgentRow, now: number): st
   return agentStateLabel(agentDotState(row, now))
 }
 
+export function agentIdentityLabel(agentType: string | null): string {
+  if (!agentType) {
+    return ''
+  }
+  const normalized = agentType.toLowerCase()
+  const known: Record<string, string> = {
+    claude: 'CL',
+    codex: 'CX',
+    gemini: 'GM',
+    cursor: 'CR',
+    copilot: 'CP',
+    amp: 'AM',
+    aider: 'AI',
+    opencode: 'OC',
+    zcode: 'ZC',
+    'mimo-code': 'MC'
+  }
+  return known[normalized] ?? normalized.slice(0, 2).toUpperCase()
+}
+
 // Mirror desktop lastEnteredDoneAt: date main-agent failures independently while subagents remain active.
 export function agentRowTimeAt(
   row: Pick<RuntimeWorktreeAgentRow, 'state' | 'interrupted' | 'mainAgent' | 'stateStartedAt'>

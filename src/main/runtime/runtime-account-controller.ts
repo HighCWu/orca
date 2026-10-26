@@ -23,6 +23,8 @@ import type {
 } from '../../shared/host-account-sign-in-types'
 import type { CodexRateLimitResetOutcome, RateLimitState } from '../../shared/rate-limit-types'
 import type { CodexResetCreditExpectedScope } from '../../shared/codex-reset-credit-scope'
+import type { ZcodeResetCreditCoordinator } from '../zcode/zcode-reset-credit-coordinator'
+import type { ZcodeResetType } from '../zcode/zcode-reset-credits'
 import type { CommitMessageAgentEnvironmentResolvers } from '../text-generation/commit-message-agent-environment'
 import type { ClaudeAccountSelectionTarget } from '../claude-accounts/runtime-selection'
 import {
@@ -35,6 +37,7 @@ export type RuntimeAccountServices = {
   claudeAccounts: ClaudeAccountService
   codexAccounts: CodexAccountService
   rateLimits: RateLimitService
+  zcodeResetCredits: ZcodeResetCreditCoordinator
 }
 
 export type AccountsSnapshot = {
@@ -43,6 +46,10 @@ export type AccountsSnapshot = {
   claude: ClaudeRateLimitAccountsState
   codex: CodexRateLimitAccountsState
   rateLimits: RateLimitState
+}
+
+export type ZcodeRateLimitResetRpcResult = {
+  snapshot: AccountsSnapshot
 }
 
 export type CodexRateLimitResetRpcResult = {
@@ -236,6 +243,11 @@ export class RuntimeAccountController {
       }
     }
     return { outcome: result.outcome, scope: result.scope, snapshot }
+  }
+
+  async consumeZcodeResetCredit(resetType: ZcodeResetType): Promise<ZcodeRateLimitResetRpcResult> {
+    await this.requireServices().zcodeResetCredits.consumeCurrent(resetType)
+    return { snapshot: this.getSnapshot() }
   }
 
   removeClaude(accountId: string): Promise<ClaudeRateLimitAccountsState> {
