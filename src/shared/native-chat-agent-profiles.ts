@@ -40,6 +40,12 @@ const NATIVE_CHAT_AGENT_PROFILES: Partial<Record<AgentType, NativeChatAgentProfi
     // App-server has no slash parser; the model owns goal tools and receives /goal objectives as prose.
     textDrivenCommands: ['goal']
   },
+  // ZCode mirrors Codex: the composer picks a skill with `$`, the picked name
+  // reaches the CLI as prose, and the CLI expands it against its own skill roots.
+  zcode: {
+    skillPrefix: '$',
+    skillSourceOwner: 'zcode'
+  },
   claude: {
     skillPrefix: '/',
     skillSourceOwner: 'claude',
