@@ -97,6 +97,13 @@ export function resolveUsageCredentials(
   }
 }
 
+/** The v2 credential store the reset-credit client reads its JWTs from. */
+export function zcodeCredentialStorePath(options: ZcodeUsageCredentialOptions = {}): string {
+  const host = options.credentialHost ?? localZcodeCredentialHost()
+  const base = host.env.ZCODE_DATA_BASE_DIR?.trim() || host.home
+  return join(base, '.zcode', 'v2', 'credentials.json')
+}
+
 export function readZcodeUsageCredentials(
   options: ZcodeUsageCredentialOptions = {}
 ): ZcodeUsageCredentialRead {
