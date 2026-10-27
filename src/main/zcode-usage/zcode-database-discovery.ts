@@ -1,4 +1,3 @@
-import { stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { wslGatedStat } from '../native-chat/wsl-transcript-fs-access'
@@ -42,9 +41,10 @@ export async function listZcodeDatabases(
 }
 
 export async function getProcessedDatabaseInfo(
-  dbPath: string
+  dbPath: string,
+  signal?: AbortSignal
 ): Promise<ZcodeUsageProcessedDatabase> {
-  const dbStat = await stat(dbPath)
+  const dbStat = await wslGatedStat(dbPath, 'scan', signal)
   return {
     path: dbPath,
     mtimeMs: dbStat.mtimeMs,

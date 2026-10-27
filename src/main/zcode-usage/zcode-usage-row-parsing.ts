@@ -33,10 +33,7 @@ export function parseZcodeUsageRow(row: ZcodeUsageRow): ZcodeUsageParsedEvent | 
     ensureNumber(row.cache_read_input_tokens) + ensureNumber(row.cache_creation_input_tokens)
   const outputTokens = ensureNumber(row.output_tokens)
   const reasoningOutputTokens = ensureNumber(row.reasoning_tokens)
-  const totalTokens = Math.max(
-    inputTokens + outputTokens + reasoningOutputTokens,
-    ensureNumber(row.computed_total_tokens)
-  )
+  const totalTokens = Math.max(inputTokens + outputTokens, ensureNumber(row.computed_total_tokens))
 
   if (totalTokens <= 0) {
     return null

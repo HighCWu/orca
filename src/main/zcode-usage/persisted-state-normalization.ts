@@ -32,7 +32,7 @@ export function normalizeZcodeUsageState(
   return {
     ...state,
     processedDatabases: normalizeZcodeUsagePersistedDatabases(state.processedDatabases),
-    sessions: state.sessions ?? [],
-    dailyAggregates: state.dailyAggregates ?? []
+    sessions: Array.isArray(state.sessions) ? state.sessions : [],
+    dailyAggregates: Array.isArray(state.dailyAggregates) ? state.dailyAggregates : []
   }
 }
