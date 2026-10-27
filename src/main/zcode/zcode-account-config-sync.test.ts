@@ -2,11 +2,12 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   buildZcodeAccountConfigPush,
   findZcodeBuiltinProviderConfigFile,
-  resolveZcodeAccountConfigPaths
+  resolveZcodeAccountConfigPaths,
+  syncZcodeAccountConfig
 } from './zcode-account-config-sync'
 
 const BUILT_IN = {
@@ -207,4 +208,31 @@ describe('zcode account config push', () => {
     expect(paths.builtInPath).toBe(join(root, 'explicit.json'))
     expect(paths.credentialsPath).toBe(join(root, '.zcode', 'v2', 'credentials.json'))
   })
+
+  it.each(['provider/updateAccountConfig', 'provider/refreshRegistry'])(
+    'falls back when %s rejects',
+    async (failedMethod) => {
+      const root = makeRoot()
+      const builtInPath = join(root, 'zcode-builtin.json')
+      const credentialsPath = join(root, '.zcode', 'v2', 'credentials.json')
+      mkdirSync(join(root, '.zcode', 'v2'), { recursive: true })
+      writeFileSync(builtInPath, JSON.stringify(BUILT_IN))
+      writeFileSync(credentialsPath, JSON.stringify(CREDENTIALS))
+      const request = vi.fn(async (method: string) => {
+        if (method === failedMethod) {
+          throw new Error('unavailable')
+        }
+      })
+
+      await expect(
+        syncZcodeAccountConfig(
+          { request },
+          {
+            ZCODE_DATA_BASE_DIR: root,
+            ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: builtInPath
+          }
+        )
+      ).resolves.toBe(false)
+    }
+  )
 })

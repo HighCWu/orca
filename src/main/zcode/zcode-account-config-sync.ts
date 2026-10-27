@@ -228,7 +228,11 @@ export async function syncZcodeAccountConfig(
   if (!push) {
     return false
   }
-  await connection.request('provider/updateAccountConfig', push, undefined)
-  await connection.request('provider/refreshRegistry', { reason: 'orca-session-open' }, undefined)
-  return true
+  try {
+    await connection.request('provider/updateAccountConfig', push, undefined)
+    await connection.request('provider/refreshRegistry', { reason: 'orca-session-open' }, undefined)
+    return true
+  } catch {
+    return false
+  }
 }

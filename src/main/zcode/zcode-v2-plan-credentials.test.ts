@@ -13,7 +13,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readZcodeV2PlanCredential, type ZcodeCredentialHost } from './zcode-v2-plan-credentials'
-import { readZcodeUsageCredentials } from '../rate-limits/zcode-usage-credentials'
+import {
+  readZcodeUsageCredentials,
+  zcodeCredentialStorePath
+} from '../rate-limits/zcode-usage-credentials'
 import { fetchZcodeRateLimits } from '../rate-limits/zcode-usage-fetcher'
 
 let dir: string
@@ -294,6 +297,18 @@ describe('upstream-written ZCode v2 stores', () => {
         env: { ...host.env, ZCODE_PERSONAL_PROVIDER_CONFIG_FILE: '~/selected.json' }
       })
     ).toMatchObject({ status: 'ok', configPath: selected })
+  })
+
+  it('resolves the reset credential store from the same custom data base as quota credentials', () => {
+    const dataBase = join(dir, 'zcode-data')
+    const customHost = {
+      ...host,
+      env: { ...host.env, ZCODE_DATA_BASE_DIR: '~/zcode-data' }
+    }
+
+    expect(zcodeCredentialStorePath({ credentialHost: customHost })).toBe(
+      join(dataBase, '.zcode', 'v2', 'credentials.json')
+    )
   })
 
   it('accepts upstream plaintext compatibility and rejects header injection without a request', async () => {
