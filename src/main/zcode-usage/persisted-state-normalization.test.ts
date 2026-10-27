@@ -53,6 +53,29 @@ describe('normalizeZcodeUsageState', () => {
     })
   })
 
+  it('drops source-cache records with missing rollup arrays', () => {
+    const state = JSON.parse(
+      JSON.stringify({
+        schemaVersion: ZCODE_USAGE_SCHEMA_VERSION,
+        worktreeFingerprint: null,
+        processedDatabases: [
+          { path: '/tmp/missing-sessions.db', mtimeMs: 1, size: 1, dailyAggregates: [] },
+          { path: '/tmp/missing-daily.db', mtimeMs: 1, size: 1, sessions: [] }
+        ],
+        sessions: [],
+        dailyAggregates: [],
+        scanState: {
+          enabled: true,
+          lastScanStartedAt: null,
+          lastScanCompletedAt: null,
+          lastScanError: null
+        }
+      })
+    )
+
+    expect(normalizeZcodeUsageState(state).processedDatabases).toEqual([])
+  })
+
   it('drops non-array rollups from a corrupt persisted cache', () => {
     const state = JSON.parse(
       JSON.stringify({

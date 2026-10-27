@@ -90,7 +90,7 @@ export function ZcodeUsagePane(): React.JSX.Element {
     return (
       <ClaudeUsageLoadingState
         title={title}
-        summaryCardCount={6}
+        summaryCardCount={7}
         summaryGridClassName="md:grid-cols-3"
       />
     )

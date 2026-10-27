@@ -40,9 +40,13 @@ export function normalizeZcodeUsageDailyAggregates(
 export function normalizeZcodeUsagePersistedDatabases(
   databases: ZcodeUsagePersistedDatabase[] | undefined
 ): ZcodeUsagePersistedDatabase[] {
-  return (databases ?? []).map((database) => ({
-    ...database,
-    sessions: normalizeZcodeUsageSessions(database.sessions ?? []),
-    dailyAggregates: normalizeZcodeUsageDailyAggregates(database.dailyAggregates ?? [])
-  }))
+  return (databases ?? [])
+    .filter(
+      (database) => Array.isArray(database.sessions) && Array.isArray(database.dailyAggregates)
+    )
+    .map((database) => ({
+      ...database,
+      sessions: normalizeZcodeUsageSessions(database.sessions),
+      dailyAggregates: normalizeZcodeUsageDailyAggregates(database.dailyAggregates)
+    }))
 }
