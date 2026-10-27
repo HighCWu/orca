@@ -125,8 +125,11 @@ export function readZcodeResetCredentialFacts(
   }
 }
 
-export function readZcodeResetAccountId(credentialStorePath: string): string | null {
-  return readZcodeResetCredentialFacts(credentialStorePath)?.accountId ?? null
+export function readZcodeResetAccountId(
+  credentialStorePath: string,
+  host?: ZcodeCredentialHost
+): string | null {
+  return readZcodeResetCredentialFacts(credentialStorePath, host)?.accountId ?? null
 }
 
 function resetHeaders(facts: ZcodeResetCredentialFacts): Record<string, string> {
@@ -162,10 +165,11 @@ async function readResetEnvelope(
  *  credential store or the endpoint cannot answer — presence-only, never a hard failure. */
 export async function fetchZcodeResetCredits(options: {
   credentialStorePath: string
+  host?: ZcodeCredentialHost
   accountId?: string
   signal?: AbortSignal
 }): Promise<ZcodeResetCredits | null> {
-  const facts = readZcodeResetCredentialFacts(options.credentialStorePath)
+  const facts = readZcodeResetCredentialFacts(options.credentialStorePath, options.host)
   if (!facts || (options.accountId && options.accountId !== facts.accountId)) {
     return null
   }
