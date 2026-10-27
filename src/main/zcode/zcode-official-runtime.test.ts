@@ -24,6 +24,43 @@ describe('zcode official runtime discovery', () => {
     })
   })
 
+  it('resolves a per-user macOS app when no PATH candidate exists', () => {
+    const install = new Set([
+      '/Users/test/Applications/ZCode.app/Contents/MacOS/ZCode',
+      '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+    ])
+    expect(
+      probeZcodeOfficialRuntimes([], {
+        existsSync: (path) => install.has(path),
+        realpathSync: (path) => path,
+        platform: 'darwin',
+        home: '/Users/test'
+      })
+    ).toEqual({
+      electron: '/Users/test/Applications/ZCode.app/Contents/MacOS/ZCode',
+      bundle: '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+    })
+  })
+
+  it('resolves a per-user Windows app from LOCALAPPDATA', () => {
+    const install = new Set([
+      'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\ZCode.exe',
+      'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs'
+    ])
+    expect(
+      probeZcodeOfficialRuntimes([], {
+        existsSync: (path) => install.has(path),
+        realpathSync: (path) => path,
+        platform: 'win32',
+        home: 'C:\\Users\\test',
+        localAppData: 'C:\\Users\\test\\AppData\\Local'
+      })
+    ).toEqual({
+      electron: 'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\ZCode.exe',
+      bundle: 'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs'
+    })
+  })
+
   it('resolves the macOS app executable to Contents/Resources', () => {
     expect(
       probeZcodeOfficialRuntimes([], {
