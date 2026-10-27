@@ -1,7 +1,8 @@
 import { mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import * as transcriptFs from '../native-chat/wsl-transcript-fs-access'
 import { getLocalUsageDay } from '../usage/usage-calendar-range'
 import type { UsageWorktreeResolver } from '../usage/usage-worktree-resolver'
 import { parseZcodeUsageDatabase, scanZcodeUsageDatabases } from './scanner'
@@ -75,6 +76,8 @@ describe('zcode usage scanner', () => {
     process.env.ZCODE_DB = dbPath
   })
 
+  afterEach(() => vi.restoreAllMocks())
+
   afterAll(() => {
     if (previousZcodeDb === undefined) {
       delete process.env.ZCODE_DB
@@ -134,6 +137,25 @@ describe('zcode usage scanner', () => {
     const grown = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
     expect(grown.sessions).toHaveLength(1)
     expect(grown.sessions[0]).toMatchObject({ sessionId: 's_new', totalTokens: 10 })
+  })
+
+  it('rejects a non-ENOENT metadata failure instead of reporting stale data as current', async () => {
+    const first = await scanZcodeUsageDatabases([], [], undefined)
+    const stat = transcriptFs.wslGatedStat
+    let calls = 0
+    vi.spyOn(transcriptFs, 'wslGatedStat').mockImplementation((path, ...args) => {
+      calls += 1
+      if (calls === 2) {
+        const error = new Error('Generated metadata failure')
+        Object.assign(error, { code: 'EACCES' })
+        throw error
+      }
+      return stat(path, ...args)
+    })
+
+    await expect(scanZcodeUsageDatabases([], first.processedDatabases, undefined)).rejects.toThrow(
+      'Generated metadata failure'
+    )
   })
 
   it('keeps the last good snapshot when a changed database is temporarily unreadable', async () => {
