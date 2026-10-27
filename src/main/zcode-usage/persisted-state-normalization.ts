@@ -1,5 +1,9 @@
 import { ZCODE_USAGE_SCHEMA_VERSION } from './zcode-usage-provider'
-import { normalizeZcodeUsagePersistedDatabases } from './persisted-database-normalization'
+import {
+  normalizeZcodeUsageDailyAggregates,
+  normalizeZcodeUsagePersistedDatabases,
+  normalizeZcodeUsageSessions
+} from './persisted-database-normalization'
 import type { ZcodeUsagePersistedState } from './types'
 
 export function getDefaultZcodeUsageState(): ZcodeUsagePersistedState {
@@ -32,7 +36,9 @@ export function normalizeZcodeUsageState(
   return {
     ...state,
     processedDatabases: normalizeZcodeUsagePersistedDatabases(state.processedDatabases),
-    sessions: Array.isArray(state.sessions) ? state.sessions : [],
-    dailyAggregates: Array.isArray(state.dailyAggregates) ? state.dailyAggregates : []
+    sessions: normalizeZcodeUsageSessions(Array.isArray(state.sessions) ? state.sessions : []),
+    dailyAggregates: normalizeZcodeUsageDailyAggregates(
+      Array.isArray(state.dailyAggregates) ? state.dailyAggregates : []
+    )
   }
 }

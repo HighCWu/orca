@@ -13,8 +13,10 @@ export type ZcodeUsageScanState = {
 
 type ZcodeUsageTokenTotals = {
   inputTokens: number
-  /** Subset of `inputTokens`; ZCode reports cache reads and cache writes inside its input total. */
+  /** Subset of `inputTokens`; sum of cache reads and cache writes. */
   cachedInputTokens: number
+  cacheReadInputTokens: number
+  cacheWriteInputTokens: number
   outputTokens: number
   /** Subset of `outputTokens`, as ZCode reports it. */
   reasoningOutputTokens: number

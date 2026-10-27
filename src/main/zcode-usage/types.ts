@@ -6,8 +6,10 @@ import type {
   UsageSession
 } from '../usage/usage-rollup-records'
 
-/** ZCode logs carry no price, so the shared rollups get no extra metric. */
-export type ZcodeUsageMetric = Record<never, never>
+export type ZcodeUsageMetric = {
+  cacheReadInputTokens: number
+  cacheWriteInputTokens: number
+}
 
 export type ZcodeUsageLocationBreakdown = UsageLocationBreakdown<ZcodeUsageMetric>
 export type ZcodeUsageModelBreakdown = UsageModelBreakdown<ZcodeUsageMetric>
@@ -47,6 +49,8 @@ export type ZcodeUsageParsedEvent = {
   cwd: string | null
   inputTokens: number
   cachedInputTokens: number
+  cacheReadInputTokens: number
+  cacheWriteInputTokens: number
   outputTokens: number
   reasoningOutputTokens: number
   totalTokens: number

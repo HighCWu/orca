@@ -29,8 +29,9 @@ export function parseZcodeUsageRow(row: ZcodeUsageRow): ZcodeUsageParsedEvent | 
 
   // `input_tokens` is already the full input; the cache buckets are subsets of it.
   const inputTokens = ensureNumber(row.input_tokens)
-  const cachedInputTokens =
-    ensureNumber(row.cache_read_input_tokens) + ensureNumber(row.cache_creation_input_tokens)
+  const cacheReadInputTokens = ensureNumber(row.cache_read_input_tokens)
+  const cacheWriteInputTokens = ensureNumber(row.cache_creation_input_tokens)
+  const cachedInputTokens = cacheReadInputTokens + cacheWriteInputTokens
   const outputTokens = ensureNumber(row.output_tokens)
   const reasoningOutputTokens = ensureNumber(row.reasoning_tokens)
   const totalTokens = Math.max(inputTokens + outputTokens, ensureNumber(row.computed_total_tokens))
@@ -46,6 +47,8 @@ export function parseZcodeUsageRow(row: ZcodeUsageRow): ZcodeUsageParsedEvent | 
     model: extractModelLabel(row),
     inputTokens,
     cachedInputTokens,
+    cacheReadInputTokens,
+    cacheWriteInputTokens,
     outputTokens,
     reasoningOutputTokens,
     totalTokens

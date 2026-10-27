@@ -344,6 +344,8 @@ describe('usage overview model', () => {
           events: 9,
           inputTokens: 40_000,
           cachedInputTokens: 36_000,
+          cacheReadInputTokens: 35_000,
+          cacheWriteInputTokens: 1_000,
           outputTokens: 900,
           reasoningOutputTokens: 120,
           totalTokens: 40_900,
@@ -356,6 +358,8 @@ describe('usage overview model', () => {
             day: '2026-09-22',
             inputTokens: 40_000,
             cachedInputTokens: 36_000,
+            cacheReadInputTokens: 35_000,
+            cacheWriteInputTokens: 1_000,
             outputTokens: 900,
             reasoningOutputTokens: 120,
             totalTokens: 40_900
