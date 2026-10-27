@@ -1,8 +1,26 @@
 import { z } from 'zod'
 
+const forbiddenPersistedKeys = new Set(['__proto__', 'constructor', 'prototype'])
+
+function hasForbiddenPersistedKey(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.some(hasForbiddenPersistedKey)
+  }
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  return Object.entries(value).some(
+    ([key, child]) => forbiddenPersistedKeys.has(key) || hasForbiddenPersistedKey(child)
+  )
+}
+
 // Preserve raw own keys: Zod records erase __proto__ before emptiness checks.
 const rawConfigSchema = z.custom<Record<string, unknown>>(
-  (value) => typeof value === 'object' && value !== null && !Array.isArray(value)
+  (value) =>
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !hasForbiddenPersistedKey(value)
 )
 
 const modelRuleSchema = z
@@ -21,6 +39,16 @@ const providerRuleSchema = z
     config: rawConfigSchema
   })
   .strict()
+const oauthOnlyShellSchema = z
+  .object({ schemaVersion: z.literal(1), config: z.object({}).strict() })
+  .strict()
+const oauthCompatibleProviderConfigSchema = z
+  .object({ access: z.object({ type: z.literal('api-key') }).strict() })
+  .strict()
+const oauthCompatibleModelConfigSchema = z
+  .object({ properties: z.object({ reasoningLevel: z.string().min(1) }).strict() })
+  .strict()
+
 const selectionSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -52,22 +80,51 @@ const selectionSchema = z
 
 // ZCode 29628c9 validates the whole overlay before accepting its selected account.
 export function readSupportedZcodeV2Selection(input: unknown) {
-  const { config } = selectionSchema.parse(input)
+  if (hasForbiddenPersistedKey(input)) {
+    return { status: 'unsupported' as const }
+  }
+  const selection = selectionSchema.safeParse(input)
+  if (!selection.success) {
+    if (oauthOnlyShellSchema.safeParse(input).success) {
+      return { status: 'supported' as const, selection: undefined }
+    }
+    throw selection.error
+  }
+  const { config } = selection.data
   const providerRules = config.providerConfigRules.providerRules
   const providerIds = new Set(providerRules.map((rule) => rule.providerId))
   if (providerIds.size !== providerRules.length) {
     throw new Error('Invalid personal provider rules')
   }
 
-  // Empty smart rules are validated; richer leaves and manual normalization are unsupported.
+  const selectedProviderSupported = providerRules.every(
+    (rule) => Object.keys(rule.config).length === 0
+  )
+  const oauthProviderCompatible = providerRules.every(
+    (rule) =>
+      Object.keys(rule.config).length === 0 ||
+      oauthCompatibleProviderConfigSchema.safeParse(rule.config).success
+  )
+  const selectedModelsSupported = config.modelConfigRules.providerModelRules.every(
+    (rule) => Object.keys(rule.config).length === 0
+  )
+  const oauthModelsCompatible = config.modelConfigRules.providerModelRules.every(
+    (rule) =>
+      Object.keys(rule.config).length === 0 ||
+      oauthCompatibleModelConfigSchema.safeParse(rule.config).success
+  )
   if (
-    providerRules.some((rule) => Object.keys(rule.config).length > 0) ||
-    config.modelConfigRules.providerModelRules.some(
-      (rule) => Object.keys(rule.config).length > 0
-    ) ||
+    !oauthProviderCompatible ||
+    !oauthModelsCompatible ||
     config.modelConfigRules.manualProviderModelRules.length > 0
   ) {
-    return undefined
+    return { status: 'unsupported' as const }
   }
-  return config.defaultModelSelection
+  return {
+    status: 'supported' as const,
+    selection:
+      selectedProviderSupported && selectedModelsSupported
+        ? config.defaultModelSelection
+        : undefined
+  }
 }

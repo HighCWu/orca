@@ -143,6 +143,15 @@ export function readZcodeV2PlanCredential(
         error instanceof Error && 'code' in error && error.code === 'ENOENT' ? 'absent' : 'error'
     }
   }
+  let selection: ReturnType<typeof readSupportedZcodeV2Selection>
+  try {
+    selection = readSupportedZcodeV2Selection(JSON.parse(rawConfig))
+  } catch {
+    return { status: 'error' }
+  }
+  if (selection.status === 'unsupported') {
+    return { status: 'unavailable' }
+  }
   let rawCredentials: string
   try {
     rawCredentials = readV2File(join(base, '.zcode', 'v2', 'credentials.json'))
@@ -160,15 +169,15 @@ export function readZcodeV2PlanCredential(
     if (oauth) {
       return oauth
     }
-    const selection = readSupportedZcodeV2Selection(JSON.parse(rawConfig))
-    if (!selection) {
+    if (!selection.selection) {
       return { status: 'unavailable' }
     }
-    const site = [...sites].find(([provider]) => provider === selection.providerId)?.[1]
+    const selected = selection.selection
+    const site = [...sites].find(([provider]) => provider === selected.providerId)?.[1]
     if (!site) {
       return { status: 'unavailable' }
     }
-    const rawIdentity = store[`account-provider:${selection.providerId}:identity`]
+    const rawIdentity = store[`account-provider:${selected.providerId}:identity`]
     if (!rawIdentity) {
       return { status: 'unavailable' }
     }
@@ -178,7 +187,7 @@ export function readZcodeV2PlanCredential(
     }
     const rawKey =
       store[
-        `account-provider:coding-plan:${selection.providerId}:account:${encodeURIComponent(identity)}:api-key`
+        `account-provider:coding-plan:${selected.providerId}:account:${encodeURIComponent(identity)}:api-key`
       ]
     if (!rawKey) {
       return { status: 'unavailable' }
@@ -191,7 +200,7 @@ export function readZcodeV2PlanCredential(
       status: 'ok',
       apiKey,
       baseUrl: ZCODE_PLAN_SITE_BASE_URLS[site],
-      identity: JSON.stringify([selection.providerId, identity]),
+      identity: JSON.stringify([selected.providerId, identity]),
       configPath
     }
   } catch {
