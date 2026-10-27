@@ -120,6 +120,7 @@ describe('fetchZcodeRateLimits', () => {
     })
     expect(result.weekly?.usedPercent).toBe(44)
     expect(result.monthly?.usedPercent).toBe(3)
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('uses CREDIT_LIMIT counts when the reported percentage is stale', async () => {

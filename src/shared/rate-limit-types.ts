@@ -142,11 +142,6 @@ export type CodexRateLimitResetResult = {
   state: RateLimitState
 }
 
-/** ZCode answers only spent (its API has no partial outcomes); errors surface as rejections. */
-export type ZcodeRateLimitResetResult = {
-  state: RateLimitState
-}
-
 export type RateLimitRuntimeTarget = {
   runtime: 'host' | 'wsl'
   wslDistro: string | null

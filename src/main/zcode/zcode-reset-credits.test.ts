@@ -135,7 +135,7 @@ describe('zcode reset credits', () => {
     expect(called).toBe(false)
   })
 
-  it('decrypts reset credentials from the v2 store', () => {
+  it('decrypts reset credentials from the configured host', async () => {
     const host: ZcodeCredentialHost = {
       home: '/test-home',
       platform: 'linux',
@@ -154,6 +154,13 @@ describe('zcode reset credits', () => {
       origin: 'https://open.bigmodel.cn',
       zcodeJwt: 'jwt-1',
       codingPlanJwt: 'maas-1'
+    })
+    install(() => json(okStatus))
+    await expect(
+      fetchZcodeResetCredits({ credentialStorePath: path, host })
+    ).resolves.toMatchObject({
+      availableCount: 2,
+      weekAvailableCount: 1
     })
   })
 })

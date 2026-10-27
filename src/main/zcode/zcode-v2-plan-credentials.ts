@@ -48,6 +48,10 @@ function userPath(value: string, home: string): string {
   return value.startsWith('~/') ? join(home, value.slice(2)) : resolve(value)
 }
 
+export function resolveZcodeDataBaseDir(host: ZcodeCredentialHost): string {
+  return userPath(host.env.ZCODE_DATA_BASE_DIR ?? host.home, host.home)
+}
+
 // Read-only enc:v1 compatibility with ZCode 29628c9 credential-cipher.ts.
 export function decryptZcodeV2CredentialValue(
   value: string,
@@ -125,7 +129,7 @@ function readOAuthPlanCredential(
 export function readZcodeV2PlanCredential(
   host = localZcodeCredentialHost()
 ): ZcodeV2PlanCredential {
-  const base = userPath(host.env.ZCODE_DATA_BASE_DIR ?? host.home, host.home)
+  const base = resolveZcodeDataBaseDir(host)
   const configPath =
     (host.env.ZCODE_PERSONAL_PROVIDER_CONFIG_FILE?.trim()
       ? userPath(host.env.ZCODE_PERSONAL_PROVIDER_CONFIG_FILE.trim(), host.home)
