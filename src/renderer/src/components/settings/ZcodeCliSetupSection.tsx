@@ -5,6 +5,7 @@ import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import { Button } from '../ui/button'
 import { SearchableSetting } from './SearchableSetting'
+import { getHostShellForProjectRuntime } from '../../../../shared/local-windows-terminal-runtime'
 import { buildZcodeSetupTerminalCommand } from './zcode-setup-terminal-command'
 
 const OnboardingInlineCommandTerminal = lazy(() =>
@@ -22,6 +23,10 @@ type SetupTerminal = {
 
 export function ZcodeCliSetupSection(): React.JSX.Element {
   const commandOverride = useAppStore((s) => s.settings?.agentCmdOverrides?.zcode)?.trim()
+  const windowsShell = useAppStore((s) => s.settings?.terminalWindowsShell)
+  const setupShell = navigator.userAgent.includes('Windows')
+    ? getHostShellForProjectRuntime(undefined, windowsShell)
+    : undefined
   const [loadingChoice, setLoadingChoice] = useState<SetupChoice | null>(null)
   const [terminal, setTerminal] = useState<SetupTerminal | null>(null)
   const openSetup = useCallback(
@@ -173,6 +178,7 @@ export function ZcodeCliSetupSection(): React.JSX.Element {
             autoScrollIntoView={false}
             terminalTopMarginPx={8}
             worktreeId="zcode-sign-in-terminal"
+            shellOverride={setupShell}
             forceHostRuntime
           />
         </Suspense>

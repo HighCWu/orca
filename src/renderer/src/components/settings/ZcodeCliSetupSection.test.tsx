@@ -6,8 +6,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ZcodeCliSetupSection } from './ZcodeCliSetupSection'
 
+const defaultUserAgent = navigator.userAgent
 const mocks = vi.hoisted(() => ({
-  settings: { agentCmdOverrides: { zcode: '' } },
+  settings: { agentCmdOverrides: { zcode: '' }, terminalWindowsShell: 'powershell.exe' },
   capability: vi.fn(),
   setupInvocation: vi.fn()
 }))
@@ -19,15 +20,21 @@ vi.mock('../onboarding/OnboardingInlineCommandTerminal', () => ({
     command,
     description,
     prepareCommandForShell,
+    shellOverride,
     forceHostRuntime
   }: {
     command: string
     description: string
     prepareCommandForShell?: (command: string, shell?: string) => string
+    shellOverride?: string
     forceHostRuntime?: boolean
   }) => (
-    <div data-testid="setup-terminal" data-force-host-runtime={String(forceHostRuntime)}>
-      <output>{prepareCommandForShell?.(command, undefined) ?? command}</output>
+    <div
+      data-testid="setup-terminal"
+      data-force-host-runtime={String(forceHostRuntime)}
+      data-shell-override={shellOverride}
+    >
+      <output>{prepareCommandForShell?.(command, shellOverride) ?? command}</output>
       <p>{description}</p>
     </div>
   )
@@ -37,7 +44,12 @@ vi.mock('./SearchableSetting', () => ({
 }))
 
 beforeEach(() => {
+  Object.defineProperty(navigator, 'userAgent', {
+    configurable: true,
+    value: defaultUserAgent
+  })
   mocks.settings.agentCmdOverrides.zcode = ''
+  mocks.settings.terminalWindowsShell = 'powershell.exe'
   mocks.capability.mockReset().mockResolvedValue('interactive')
   mocks.setupInvocation
     .mockReset()
@@ -86,6 +98,26 @@ describe('ZCode CLI-owned sign-in setup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close setup terminal' }))
     expect(screen.queryByTestId('setup-terminal')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: label })).toBeEnabled()
+  })
+
+  it('uses a native host shell when the Windows terminal default is WSL', async () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value: 'Windows'
+    })
+    mocks.settings.terminalWindowsShell = 'wsl.exe'
+    mocks.setupInvocation.mockResolvedValue({
+      command: 'C:\\Program Files\\ZCode\\ZCode.exe',
+      args: ['C:\\Program Files\\ZCode\\resources\\glm\\zcode.cjs', 'login', 'zai', '--no-browser'],
+      env: { ELECTRON_RUN_AS_NODE: '1' }
+    })
+
+    render(<ZcodeCliSetupSection />)
+    fireEvent.click(screen.getByRole('button', { name: 'Z.AI browser sign-in' }))
+
+    const terminal = await screen.findByTestId('setup-terminal')
+    expect(terminal).toHaveAttribute('data-shell-override', 'powershell.exe')
+    expect(terminal).toHaveTextContent("$env:ELECTRON_RUN_AS_NODE = '1'")
   })
 
   it('runs browser sign-in through the resolved desktop bundle invocation', async () => {
