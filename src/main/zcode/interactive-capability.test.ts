@@ -42,8 +42,22 @@ describe('readZCodeInteractiveCapability', () => {
     expect(spec.env?.ELECTRON_RUN_AS_NODE).toBe('1')
   })
 
+  it('does not classify an unrecognized non-zero exit as interactive', async () => {
+    mocks.runProcess.mockResolvedValue({
+      code: 1,
+      stdout: '',
+      stderr: 'not a tty',
+      timedOut: false
+    })
+
+    await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('unknown')
+    await readZCodeInteractiveCapability(desktopInvocation)
+
+    expect(mocks.runProcess).toHaveBeenCalledTimes(2)
+  })
+
   it('caches definitive verdicts by invocation identity', async () => {
-    mocks.runProcess.mockResolvedValue({ code: 1, stdout: '', stderr: 'not a tty', timedOut: false })
+    mocks.runProcess.mockResolvedValue({ code: 0, stdout: '', stderr: '', timedOut: false })
     const standalone = {
       ...desktopInvocation,
       command: '/usr/local/bin/zcode',
@@ -53,7 +67,7 @@ describe('readZCodeInteractiveCapability', () => {
       source: 'standalone' as const
     }
 
-    await readZCodeInteractiveCapability(desktopInvocation)
+    await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('interactive')
     await readZCodeInteractiveCapability(desktopInvocation)
     await readZCodeInteractiveCapability(standalone)
 
