@@ -19464,6 +19464,131 @@
       ]
     },
     {
+      "id": "zcode-five-hour-reset-credit-consumed",
+      "operation": "accounts.zcode-reset-credit",
+      "family": "components.zcode-reset-credit",
+      "sites": ["mobile/src/components/zcode-reset-credit.ts"],
+      "schedules": [],
+      "deviceStore": {},
+      "steps": [
+        {
+          "action": "confirm",
+          "id": "confirm"
+        },
+        {
+          "checkpoint": "requested"
+        },
+        {
+          "complete": "accounts.consumeZcodeResetCredit#1",
+          "params": {
+            "resetType": "FIVE_HOUR"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "snapshot": {
+                "claude": {
+                  "accounts": [],
+                  "activeAccountId": null
+                },
+                "codex": {
+                  "accounts": [],
+                  "activeAccountId": null
+                },
+                "rateLimits": {
+                  "claude": null,
+                  "codex": null,
+                  "zcode": {
+                    "provider": "zcode",
+                    "session": null,
+                    "weekly": null,
+                    "rateLimitResetCredits": {
+                      "availableCount": 0
+                    },
+                    "updatedAt": 1700000000000,
+                    "error": null,
+                    "status": "ok"
+                  },
+                  "inactiveClaudeAccounts": [],
+                  "inactiveCodexAccounts": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "consumed"
+        }
+      ]
+    },
+    {
+      "id": "zcode-week-reset-credit-consumed",
+      "operation": "accounts.zcode-reset-credit",
+      "family": "components.zcode-reset-credit",
+      "sites": ["mobile/src/components/zcode-reset-credit.ts"],
+      "schedules": [],
+      "deviceStore": {},
+      "steps": [
+        {
+          "action": "confirm",
+          "args": {
+            "resetType": "WEEK"
+          },
+          "id": "confirm"
+        },
+        {
+          "checkpoint": "requested"
+        },
+        {
+          "complete": "accounts.consumeZcodeResetCredit#1",
+          "params": {
+            "resetType": "WEEK"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "snapshot": {
+                "claude": {
+                  "accounts": [],
+                  "activeAccountId": null
+                },
+                "codex": {
+                  "accounts": [],
+                  "activeAccountId": null
+                },
+                "rateLimits": {
+                  "claude": null,
+                  "codex": null,
+                  "zcode": {
+                    "provider": "zcode",
+                    "session": null,
+                    "weekly": {
+                      "usedPercent": 0,
+                      "windowMinutes": 10080,
+                      "resetsAt": null,
+                      "resetDescription": null
+                    },
+                    "rateLimitResetCredits": {
+                      "availableCount": 1,
+                      "weekAvailableCount": 0
+                    },
+                    "updatedAt": 1700000000000,
+                    "error": null,
+                    "status": "ok"
+                  },
+                  "inactiveClaudeAccounts": [],
+                  "inactiveCodexAccounts": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "consumed"
+        }
+      ]
+    },
+    {
       "id": "push-dismissal-tray-reconciled",
       "operation": "notifications.push-dismissal",
       "family": "notifications.push-dismissal",

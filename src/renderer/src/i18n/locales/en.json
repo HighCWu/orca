@@ -4376,7 +4376,18 @@
             "codexSignInError": "Codex sign-in failed. Please try again.",
             "cursorUsageMenu": "Cursor Usage",
             "hiddenUsageProviders": "Also: {{value0}}",
-            "zcodeUsageMenu": "ZCode Usage"
+            "zcodeUsageMenu": "ZCode Usage",
+            "zcode": {
+              "oneFiveHourCard": "1 five-hour rate-limit reset available",
+              "fiveHourCards": "{{value0}} five-hour rate-limit resets available",
+              "oneWeekCard": "1 weekly rate-limit reset available",
+              "weekCards": "{{value0}} weekly rate-limit resets available",
+              "weekCardTitle": "Use a weekly rate-limit reset?",
+              "weekCardBody": "This spends one GLM Coding Plan weekly rate-limit reset on this account and resets its weekly usage window immediately.",
+              "resetCreditTitle": "Use a rate-limit reset?",
+              "resetCreditBody": "This spends one GLM Coding Plan rate-limit reset on this account and resets its five-hour usage window immediately.",
+              "useWeekCard": "Use weekly reset"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Connect an account",
@@ -4945,7 +4956,8 @@
           "c760c481c5": "Usage Overview",
           "55c910f4f1": "- some model prices are unavailable",
           "enableMuse": "Enable Muse",
-          "noLocalUsageYet": "No local Claude, Codex, OpenCode, or Muse usage found yet. The overview will populate after the next agent session writes token logs."
+          "noLocalUsageYet": "No local Claude, Codex, OpenCode, or Muse usage found yet. The overview will populate after the next agent session writes token logs.",
+          "enableZcode": "Enable ZCode"
         },
         "share": {
           "card": {
@@ -4983,7 +4995,9 @@
             "d6e9f0a1b2": "credits",
             "a3b6c7d8e9": "grok usage",
             "9f2a3b4c5d": "xai",
-            "museKeyword": "muse"
+            "museKeyword": "muse",
+            "zcodeKeyword": "zcode",
+            "zcodeUsageKeyword": "zcode usage"
           }
         },
         "usage": {
@@ -5061,6 +5075,17 @@
           "emptyMessage": "No local Muse usage found yet for this scope.",
           "noCostNote": "Muse session logs record tokens but not cost, so no cost estimate is shown.",
           "recentSessionsDescription": "Most recent local Muse sessions in this scope."
+        },
+        "ZcodeUsagePane": {
+          "recentSessionsDescription": "Most recent local ZCode sessions in this scope.",
+          "scopeAll": "All local ZCode usage",
+          "title": "ZCode Usage Tracking",
+          "enableLabel": "Enable ZCode usage analytics",
+          "disabledDescription": "Reads the local ZCode CLI usage database to show token, model, and session stats.",
+          "optionsLabel": "ZCode usage options",
+          "refreshAriaLabel": "Refresh ZCode usage",
+          "emptyMessage": "No local ZCode usage found yet for this scope.",
+          "noCostNote": "The ZCode usage database records tokens but not cost, so no cost estimate is shown."
         }
       },
       "sparse": {

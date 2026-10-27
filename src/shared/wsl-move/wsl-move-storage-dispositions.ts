@@ -126,7 +126,8 @@ export const SQLITE_SCHEMA_FILE_DATABASES: Record<string, string> = {
   'src/main/ai-vault/session-scanner-test-fixtures.ts': 'test-fixture',
   'src/main/browser/cookies/browser-cookie-import-test-database.ts': 'test-fixture',
   'src/main/codex/codex-state-db-test-fixture.ts': 'test-fixture',
-  'src/main/opencode-usage/opencode-usage-sqlite-fixture.ts': 'test-fixture'
+  'src/main/opencode-usage/opencode-usage-sqlite-fixture.ts': 'test-fixture',
+  'src/main/zcode-usage/zcode-usage-sqlite-fixture.ts': 'test-fixture'
 }
 
 const tables = (
@@ -248,6 +249,7 @@ export const SQLITE_TABLE_DISPOSITIONS: Record<string, WslMoveFieldDisposition> 
         'backfill_state',
         'cookies',
         'message',
+        'model_usage',
         'part',
         'project',
         'session',

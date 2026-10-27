@@ -430,6 +430,20 @@ vi.mock('../native-chat', () => ({
 import { agentSessionRefusalError } from '../../../shared/agent-session-wire-refusals'
 import { recordStructuredAgentSessionHostInstallRefusal } from '../../runtime/structured-agent-session-host-refusal'
 import { registerCoreHandlers } from './register-core-handlers'
+import { ZcodeResetCreditCoordinator } from '../../zcode/zcode-reset-credit-coordinator'
+import { EMPTY_ZCODE_RESET_CREDIT_ATTEMPTS } from '../../../shared/zcode-reset-credit-attempts'
+import { createEmptyRateLimitState } from '../../../shared/rate-limit-state-factory'
+
+const makeZcodeResetCreditCoordinator = (): ZcodeResetCreditCoordinator =>
+  new ZcodeResetCreditCoordinator({
+    store: {
+      getZcodeResetCreditAttempts: () => EMPTY_ZCODE_RESET_CREDIT_ATTEMPTS,
+      replaceZcodeResetCreditAttemptsAndFlush: () => Promise.resolve()
+    },
+    rateLimits: {
+      consumeZcodeResetCredit: () => Promise.resolve(createEmptyRateLimitState())
+    }
+  })
 
 let registeredAiVaultOptions: {
   ensureStructuredSessionOwnership: () => Promise<void>
@@ -525,8 +539,10 @@ describe('registerCoreHandlers', () => {
     const codexUsage = { marker: 'codexUsage' }
     const openCodeUsage = { marker: 'openCodeUsage' }
     const museUsage = { marker: 'museUsage' }
+    const zcodeUsage = { marker: 'zcodeUsage' }
     const codexAccounts = { marker: 'codexAccounts', runtimeHomeService: { marker: 'runtimeHome' } }
     const claudeAccounts = { marker: 'claudeAccounts' }
+    const zcodeResetCredits = makeZcodeResetCreditCoordinator()
     const rateLimits = { marker: 'rateLimits' }
     const agentAwakeService = { marker: 'agentAwakeService' }
     const onBeforeRelaunch = vi.fn()
@@ -541,7 +557,10 @@ describe('registerCoreHandlers', () => {
       openCodeUsage as never,
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
       museUsage as never,
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
+      zcodeUsage as never,
       codexAccounts as never,
+      zcodeResetCredits,
       claudeAccounts as never,
       rateLimits as never,
       null,
@@ -568,7 +587,8 @@ describe('registerCoreHandlers', () => {
       claudeUsage,
       codexUsage,
       openCodeUsage,
-      museUsage
+      museUsage,
+      zcodeUsage
     })
     expect(registerAppHandlersMock).toHaveBeenCalledWith(store, {
       quitResumeRecordsFor: expect.any(Function),
@@ -595,7 +615,11 @@ describe('registerCoreHandlers', () => {
     expect(registerZcodePlanCredentialsHandlersMock).toHaveBeenCalledWith(rateLimits)
     expect(registerGrokAccountHandlersMock).toHaveBeenCalled()
     expect(registerCursorAccountHandlersMock).toHaveBeenCalled()
-    expect(registerRateLimitHandlersMock).toHaveBeenCalledWith(rateLimits, codexAccounts)
+    expect(registerRateLimitHandlersMock).toHaveBeenCalledWith(
+      rateLimits,
+      codexAccounts,
+      zcodeResetCredits
+    )
     expect(registerGitHubHandlersMock).toHaveBeenCalledWith(store, stats)
     expect(registerLinearHandlersMock).toHaveBeenCalled()
     expect(registerJiraHandlersMock).toHaveBeenCalled()
@@ -763,6 +787,7 @@ describe('registerCoreHandlers', () => {
     const codexUsage2 = { marker: 'codexUsage2' }
     const openCodeUsage2 = { marker: 'openCodeUsage2' }
     const museUsage2 = { marker: 'museUsage2' }
+    const zcodeUsage2 = { marker: 'zcodeUsage2' }
     const codexAccounts2 = { marker: 'codexAccounts2' }
     const claudeAccounts2 = { marker: 'claudeAccounts2' }
     const rateLimits2 = { marker: 'rateLimits2' }
@@ -776,7 +801,10 @@ describe('registerCoreHandlers', () => {
       openCodeUsage2 as never,
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
       museUsage2 as never,
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: registration only forwards this marker to the mocked usage registrar.
+      zcodeUsage2 as never,
       codexAccounts2 as never,
+      makeZcodeResetCreditCoordinator(),
       claudeAccounts2 as never,
       rateLimits2 as never,
       42

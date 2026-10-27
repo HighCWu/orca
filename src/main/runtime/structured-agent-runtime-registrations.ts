@@ -16,6 +16,14 @@ import { createAcpAgentConnection } from '../acp/acp-agent-connection'
 import { acpStructuredLaunchPart } from '../acp/acp-structured-launch-resolution'
 import { AcpStructuredSessionAdapter } from '../acp/acp-structured-session-adapter'
 import { PI_RPC_RUNTIME_REGISTRATION } from '../pi/rpc-runtime-registration'
+import { ZcodeStructuredSessionAdapter } from '../zcode/zcode-structured-session-adapter'
+import { ZCODE_STRUCTURED_AGENT } from '../zcode/zcode-structured-agent-definition'
+import { ZcodeAtRestCommandCatalog } from '../zcode/zcode-at-rest-commands'
+import { createZcodeAgentConnection } from '../zcode/zcode-protocol-connection'
+import {
+  zcodeStructuredLaunchPart,
+  resolveZcodeLaunchInvocation
+} from '../zcode/zcode-structured-launch-resolution'
 import {
   claudeLaunchEnvOverlay,
   claudeListingDeps
@@ -162,6 +170,55 @@ function createAcpAdapter(
   }
 }
 
+function createZcodeAdapter(context: StructuredAgentAdapterContext): StructuredAgentRuntimeAdapter {
+  const { deps, followUps } = context
+  const readJournal = (sessionId: string) => replayJournal(context.journalDatabase.db, sessionId)
+  return new ZcodeStructuredSessionAdapter({
+    resolveLaunch: composeStructuredLaunch(
+      ZCODE_STRUCTURED_AGENT,
+      structuredAgentLaunchSources(context),
+      zcodeStructuredLaunchPart()
+    ),
+    readJournal,
+    resolveInvocation: (accountHomePath) =>
+      resolveZcodeLaunchInvocation(accountHomePath, {
+        resolveEnvironment: context.environment.resolveBaseEnvironment,
+        ...(deps.resolveAgentLaunchEnv ? { resolveLaunchEnv: deps.resolveAgentLaunchEnv } : {}),
+        ...(deps.resolveAgentCommandSettings
+          ? {
+              resolveCommandSettings: () => deps.resolveAgentCommandSettings?.() ?? {}
+            }
+          : {}),
+        refreshEnvironmentAfterMiss: context.environment.refreshAfterMissingProgram
+      }),
+    atRestCommands: new ZcodeAtRestCommandCatalog({
+      resolveWorkspacePath: deps.resolveWorkspacePath,
+      connect: (launch) => createZcodeAgentConnection(launch),
+      resolveInvocation: (accountHomePath) =>
+        resolveZcodeLaunchInvocation(accountHomePath, {
+          resolveEnvironment: context.environment.resolveBaseEnvironment,
+          ...(deps.resolveAgentLaunchEnv ? { resolveLaunchEnv: deps.resolveAgentLaunchEnv } : {}),
+          ...(deps.resolveAgentCommandSettings
+            ? {
+                resolveCommandSettings: () => deps.resolveAgentCommandSettings?.() ?? {}
+              }
+            : {}),
+          refreshEnvironmentAfterMiss: context.environment.refreshAfterMissingProgram
+        })
+    }),
+    ...(deps.readProcessStartTime ? { readProcessStartTime: deps.readProcessStartTime } : {}),
+    onDispatchSettledLate: followUps.onDispatchSettledLate,
+    onChildWorkEvidence: (sessionId, evidence, producer) =>
+      context.host()?.publishChildWorkEvidence(sessionId, evidence, producer),
+    logger: deps.logger,
+    onEvent: (event) => {
+      if (event.type === 'ended' && 'cause' in event) {
+        context.deliverLifecycle(event)
+      }
+    }
+  })
+}
+
 function registrationWithAdapter(
   entry: StructuredAgentRuntimeCatalogEntry
 ): StructuredAgentRuntimeRegistration {
@@ -175,6 +232,8 @@ function registrationWithAdapter(
       return Object.assign(entry.metadata, { createAdapter: createClaudeAdapter })
     case 'acp':
       return Object.assign(entry.metadata, { createAdapter: createAcpAdapter(entry.spec) })
+    case 'zcode':
+      return Object.assign(entry.metadata, { createAdapter: createZcodeAdapter })
   }
 }
 

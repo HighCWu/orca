@@ -23,6 +23,7 @@ import {
   DEFAULT_POLL_MS
 } from './service-types'
 import { readGrokAuthSession } from '../grok-auth'
+import type { ZcodeResetOpportunityPollState } from './zcode-reset-opportunity-poll'
 
 export abstract class RateLimitServiceState {
   protected state: InternalRateLimitState = {
@@ -91,6 +92,14 @@ export abstract class RateLimitServiceState {
   protected lastOpencodeConfigHash = ''
   protected lastMiniMaxConfigHash = ''
   protected lastZcodeConfigHash = ''
+  // The /opportunity eligibility check has server-side cooldowns (3301 next_try_at, 429): honor
+  // them or every refresh cycle re-throttles and the account never gets cards granted.
+  protected readonly zcodeOpportunityPoll: ZcodeResetOpportunityPollState = {
+    accountId: null,
+    nextCheckAt: 0,
+    retryIdempotencyKey: null,
+    inFlight: null
+  }
   protected codexHomePathResolver: CodexHomePathResolver | null = null
   protected codexFetchTarget: NormalizedCodexAccountSelectionTarget = {
     runtime: 'host',

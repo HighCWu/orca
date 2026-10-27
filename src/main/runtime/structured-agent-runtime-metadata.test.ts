@@ -26,6 +26,7 @@ describe('structured agent metadata without adapter implementations', () => {
       'pi',
       'codex',
       'claude',
+      'zcode',
       'grok',
       'opencode',
       'opencode2',
@@ -36,5 +37,24 @@ describe('structured agent metadata without adapter implementations', () => {
       STRUCTURED_AGENT_RUNTIME_METADATA.every((metadata) => !('createAdapter' in metadata))
     ).toBe(true)
     expect(structuredAgentRuntimeMetadata('cursor')).toBeNull()
+  })
+
+  it('publishes the same ZCode app-server program that a structured launch resolves', () => {
+    const metadata = structuredAgentRuntimeMetadata('zcode')
+    const resolved = metadata?.chatProgram?.resolve(
+      {
+        PATH: '/usr/bin',
+        ZCODE_AGENT_SERVER_COMMAND: '/opt/zcode-host'
+      },
+      { agentCmdOverrides: {} }
+    )
+
+    expect(resolved).toEqual({
+      command: '/opt/zcode-host',
+      env: {
+        PATH: '/usr/bin',
+        ZCODE_AGENT_SERVER_COMMAND: '/opt/zcode-host'
+      }
+    })
   })
 })

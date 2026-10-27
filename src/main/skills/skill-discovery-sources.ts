@@ -135,6 +135,20 @@ export function buildSkillDiscoverySources(
     ),
     // Provider home roots also receive global npx installs; canonical roots alone miss them.
     ...providerHomeSources(home, pathApi, providerRootOverrides),
+    // Why: the zcode CLI reads project skills from `.zcode/skills` too; installs
+    // stay on the canonical `.agents/skills` root, this is discovery-only.
+    ...(cwd
+      ? [
+          source(
+            `repo-zcode-${stablePathId(cwd)}`,
+            'ZCode repo',
+            pathApi.join(cwd, '.zcode', 'skills'),
+            'repo',
+            ['agent-skills'],
+            'zcode'
+          )
+        ]
+      : []),
     // Why: discovery-only agent folders; installs for these agents go to the canonical root.
     source(
       'home-opencode',

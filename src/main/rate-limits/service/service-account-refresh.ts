@@ -30,6 +30,21 @@ export abstract class RateLimitServiceAccountRefresh extends RateLimitServiceIna
     return this.getState()
   }
 
+  /** Spends one five-hour-window rate-limit reset (重置卡) and reads the refreshed quota. */
+  async consumeZcodeResetCredit(
+    resetType: 'FIVE_HOUR' | 'WEEK',
+    idempotencyKey?: string,
+    accountId?: string
+  ): Promise<RateLimitState> {
+    const stateBeforeReset = this.getState()
+    const resetAccountId = await this.consumeZcodeResetOnCycles(
+      resetType,
+      idempotencyKey,
+      accountId
+    )
+    return this.fetchZcodeResetResultState(stateBeforeReset, resetType, resetAccountId)
+  }
+
   invalidateOpenCodeGoCredentialState(options: { apiKeyCleared?: boolean } = {}): void {
     this.opencodeFetchGeneration += 1
     // Store/env keys survive cookie changes; only clearing the saved override hides its presence.

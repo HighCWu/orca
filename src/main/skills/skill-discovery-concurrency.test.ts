@@ -174,7 +174,7 @@ describe('bounded concurrent skill discovery', () => {
 
     const line = String(info.mock.calls.at(0)?.at(0))
     // Present-root count distinguishes large trees from large root sets.
-    expect(line).toContain('[skills] scan roots=35 present=3 walked=35 skills=3')
+    expect(line).toContain('[skills] scan roots=36 present=3 walked=36 skills=3')
     expect(line).toContain('home-claude')
     expect(line).not.toContain(home)
     expect(line).not.toContain(tmpdir())

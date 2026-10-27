@@ -1,4 +1,5 @@
 import { agentSessionAccountHome } from '../../shared/agent-session-account-home'
+import { homedir } from 'node:os'
 import { applyStructuredCodexWorkspaceTrust } from '../agent-workspace-trust-spawn'
 import { ACP_LAUNCH_SPECS, type AcpLaunchSpec } from '../acp/acp-launch-specs'
 import { acpStructuredAgentDefinition } from '../acp/acp-structured-agent-definitions'
@@ -11,6 +12,12 @@ import { supportsCodexStructuredLocation } from '../codex/codex-structured-locat
 import { supportsClaudeStructuredLocation } from '../claude/claude-structured-location-support'
 import { supportsAcpStructuredLocation } from '../acp/acp-structured-location-support'
 import { PI_RPC_RUNTIME_METADATA } from '../pi/rpc-runtime-metadata'
+import { ZCODE_STRUCTURED_AGENT } from '../zcode/zcode-structured-agent-definition'
+import { zcodeModelCatalogDiscovery } from '../zcode/zcode-model-catalog-probe'
+import { ZCODE_TRANSCRIPT_IMPORT } from '../zcode/zcode-transcript-import'
+import { resolveZcodeLaunchCommand } from '../zcode/zcode-structured-launch-resolution'
+import { supportsSupervisedProviderChildLocation } from '../provider-process/supervised-provider-child-location'
+import { resumeInvocationAfterMarker } from '../native-chat/structured-agent-cli-conversations'
 import {
   resolveStructuredClaudeAccountHomePath,
   resolveStructuredCodexAccountHomePath
@@ -32,6 +39,7 @@ import type {
 export type StructuredAgentRuntimeCatalogEntry =
   | { kind: 'pi' | 'codex' | 'claude'; metadata: StructuredAgentRuntimeMetadata }
   | { kind: 'acp'; metadata: StructuredAgentRuntimeMetadata; spec: AcpLaunchSpec }
+  | { kind: 'zcode'; metadata: StructuredAgentRuntimeMetadata }
 
 // Why the host's data folder: a start runs Orca's installed release before PATH.
 function acpChatProgram(spec: AcpLaunchSpec): StructuredAgentChatProgram {
@@ -53,6 +61,15 @@ function cliChatProgram(agent: 'claude' | 'codex'): StructuredAgentChatProgram {
       const pathEnv = env.PATH ?? env.Path ?? null
       const options = { pathEnv, ...(homePath ? { homePath } : {}) }
       return { command: resolveStructuredAgentCommand(agent, commandSettings, options), env }
+    }
+  }
+}
+
+function zcodeChatProgram(): StructuredAgentChatProgram {
+  return {
+    resolve: (env, commandSettings) => {
+      const launch = resolveZcodeLaunchCommand(env, { commandSettings })
+      return { command: launch.command, env: { ...env, ...launch.envOverlay } }
     }
   }
 }
@@ -141,6 +158,27 @@ export const STRUCTURED_AGENT_RUNTIME_CATALOG: readonly StructuredAgentRuntimeCa
             wslDistro: location?.wslDistro ?? null,
             getClaudeConfigDirectory: services.getClaudeConfigDirectory
           })
+        )
+    }
+  },
+  {
+    kind: 'zcode',
+    metadata: {
+      definition: ZCODE_STRUCTURED_AGENT,
+      chatProgram: zcodeChatProgram(),
+      modelCatalog: zcodeModelCatalogDiscovery,
+      // The account's own session database is the store a chat adopts from.
+      transcriptImport: ZCODE_TRANSCRIPT_IMPORT,
+      sessionHistory: {
+        rowAgents: ['zcode'],
+        rowSessionId: (link) => link.handle.nativeId,
+        parseResumeArgs: (args) => resumeInvocationAfterMarker(args, ['--resume'])
+      },
+      supportsLocation: (location) => supportsSupervisedProviderChildLocation(location),
+      resolveAccountHome: async ({ launchEnv }) =>
+        agentSessionAccountHome(
+          ZCODE_STRUCTURED_AGENT,
+          launchEnv.ZCODE_DATA_BASE_DIR ?? launchEnv.HOME ?? launchEnv.USERPROFILE ?? homedir()
         )
     }
   },

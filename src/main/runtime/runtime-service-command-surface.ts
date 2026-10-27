@@ -58,6 +58,7 @@ export type RuntimeServiceCommandSurface = {
   selectCodexAccount: RuntimeAccountController['selectCodex']
   selectCodexAccountForTarget: RuntimeAccountController['selectCodexForTarget']
   consumeCodexRateLimitResetCredit: RuntimeAccountController['consumeCodexResetCredit']
+  consumeZcodeResetCredit: RuntimeAccountController['consumeZcodeResetCredit']
   removeClaudeAccount: RuntimeAccountController['removeClaude']
   beginClaudeSignIn: RuntimeAccountController['beginClaudeSignIn']
   finishClaudeSignIn: RuntimeAccountController['finishClaudeSignIn']
@@ -171,6 +172,7 @@ export function installRuntimeServiceCommandSurface(
     selectCodexAccount: accounts.selectCodex.bind(accounts),
     selectCodexAccountForTarget: accounts.selectCodexForTarget.bind(accounts),
     consumeCodexRateLimitResetCredit: accounts.consumeCodexResetCredit.bind(accounts),
+    consumeZcodeResetCredit: accounts.consumeZcodeResetCredit.bind(accounts),
     removeClaudeAccount: accounts.removeClaude.bind(accounts),
     beginClaudeSignIn: accounts.beginClaudeSignIn.bind(accounts),
     finishClaudeSignIn: accounts.finishClaudeSignIn.bind(accounts),

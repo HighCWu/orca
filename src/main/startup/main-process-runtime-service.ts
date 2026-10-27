@@ -177,7 +177,8 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
   const claudeAccounts = state.claudeAccounts
   const codexAccounts = state.codexAccounts
   const rateLimits = state.rateLimits
-  if (!store || !claudeAccounts || !codexAccounts || !rateLimits) {
+  const zcodeResetCredits = state.zcodeResetCredits
+  if (!store || !claudeAccounts || !codexAccounts || !rateLimits || !zcodeResetCredits) {
     throw new Error('Account services must be initialized before runtime wiring')
   }
   runtime.setArtifactService(
@@ -186,7 +187,7 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
     )
   )
   runtime.setSkillCloudService(new SkillCloudService(app.getPath('userData')))
-  runtime.setAccountServices({ claudeAccounts, codexAccounts, rateLimits })
+  runtime.setAccountServices({ claudeAccounts, codexAccounts, rateLimits, zcodeResetCredits })
   installWslOrcadAccountShim(store)
   runtime.setCommitMessageAgentEnvironmentResolvers({
     // Resolve every Codex launch through runtime-home, including default-account hooks/auth.

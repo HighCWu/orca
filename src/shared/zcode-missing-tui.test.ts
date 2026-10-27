@@ -14,6 +14,15 @@ describe('isZCodeMissingTuiOutput', () => {
     expect(isZCodeMissingTuiOutput("Error: Cannot find module '@zcode/tui'")).toBe(true)
   })
 
+  it('matches the desktop wrapper that reports its omitted TUI package', () => {
+    expect(
+      isZCodeMissingTuiOutput(
+        'zcode: TUI 不可用 — App 包未内置 @zcode/tui。\nzcode: 请使用 headless 模式。'
+      )
+    ).toBe(true)
+    expect(isZCodeMissingTuiOutput('ZCode TUI is not available: missing @zcode/tui')).toBe(true)
+  })
+
   it('does not match a build that has the TUI but no TTY', () => {
     expect(isZCodeMissingTuiOutput('TUI requires an interactive terminal.')).toBe(false)
   })
@@ -28,5 +37,6 @@ describe('isZCodeMissingTuiOutput', () => {
 
   it('does not match prose that merely mentions the package', () => {
     expect(isZCodeMissingTuiOutput('install @zcode/tui to get the terminal UI')).toBe(false)
+    expect(isZCodeMissingTuiOutput('TUI is unavailable while the terminal initializes')).toBe(false)
   })
 })

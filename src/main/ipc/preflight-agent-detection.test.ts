@@ -14,7 +14,9 @@ const {
   isCommandOnLocalPathMock,
   listLocalCommandPathsMock,
   mergePersistedWindowsPathAsyncMock,
-  mergePersistedWindowsPathMock
+  mergePersistedWindowsPathMock,
+  zcodeCapabilityMock,
+  resolveZcodeCliInvocationMock
 } = vi.hoisted(() => ({
   handleMock: vi.fn(),
   execFileMock: vi.fn(),
@@ -28,7 +30,9 @@ const {
   isCommandOnLocalPathMock: vi.fn(),
   listLocalCommandPathsMock: vi.fn(),
   mergePersistedWindowsPathAsyncMock: vi.fn(),
-  mergePersistedWindowsPathMock: vi.fn()
+  mergePersistedWindowsPathMock: vi.fn(),
+  zcodeCapabilityMock: vi.fn(),
+  resolveZcodeCliInvocationMock: vi.fn()
 }))
 
 const runWslProcessMock = vi.hoisted(() => vi.fn())
@@ -84,6 +88,14 @@ vi.mock('../gitea/client', () => ({
   getGiteaAuthStatus: getGiteaAuthStatusMock
 }))
 
+vi.mock('../zcode/interactive-capability', () => ({
+  readZCodeInteractiveCapability: zcodeCapabilityMock
+}))
+
+vi.mock('../zcode/zcode-cli-invocation', () => ({
+  resolveZcodeCliInvocation: resolveZcodeCliInvocationMock
+}))
+
 import {
   detectInstalledAgents,
   detectInstalledAgentsWithShellPathHydration
@@ -97,6 +109,14 @@ describe('preflight', () => {
 
   beforeEach(() => {
     runWslProcessMock.mockReset()
+    zcodeCapabilityMock.mockReset().mockResolvedValue('interactive')
+    resolveZcodeCliInvocationMock.mockReset().mockReturnValue({
+      command: '/usr/local/bin/zcode',
+      prefixArgs: [],
+      envOverlay: {},
+      identity: 'zcode',
+      source: 'standalone'
+    })
     resetPreflightMocks(
       {
         handleMock,
@@ -312,6 +332,21 @@ describe('preflight', () => {
     })
 
     await expect(detectInstalledAgents()).resolves.toEqual([])
+  })
+
+  it('filters a desktop-only ZCode bundle from the terminal agent inventory', async () => {
+    isCommandOnLocalPathMock.mockImplementation((command: string) => command === 'zcode')
+    zcodeCapabilityMock.mockResolvedValue('missing-tui')
+
+    await expect(detectInstalledAgents()).resolves.not.toContain('zcode')
+    expect(zcodeCapabilityMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps ZCode when the TUI probe is inconclusive', async () => {
+    isCommandOnLocalPathMock.mockImplementation((command: string) => command === 'zcode')
+    zcodeCapabilityMock.mockResolvedValue('unknown')
+
+    await expect(detectInstalledAgents()).resolves.toContain('zcode')
   })
 
   it('registers agent detection through the shared launch config commands', async () => {

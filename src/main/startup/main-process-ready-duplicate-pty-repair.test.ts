@@ -26,7 +26,8 @@ const fixture = vi.hoisted(() => {
       runtime: null,
       claudeAccounts: {},
       codexAccounts: {},
-      rateLimits: {}
+      rateLimits: {},
+      zcodeResetCredits: {}
     },
     userData: ''
   }

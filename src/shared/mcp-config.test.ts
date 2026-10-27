@@ -32,6 +32,42 @@ describe('mcp-config', () => {
     })
   })
 
+  it('parses the zcode config candidate from its nested mcp.servers key', () => {
+    const zcodeCandidate = MCP_CONFIG_CANDIDATES.find((candidate) => candidate.format === 'zcode')
+    if (!zcodeCandidate) {
+      throw new Error('zcode candidate missing')
+    }
+    const result = inspectMcpConfigContent(
+      zcodeCandidate,
+      JSON.stringify({
+        plugins: {},
+        hooks: {},
+        mcp: {
+          servers: {
+            filesystem: { type: 'stdio', command: 'npx', args: ['-y', 'server-filesystem'] },
+            docs: { type: 'sse', url: 'https://example.com/sse', enabled: false }
+          }
+        }
+      })
+    )
+
+    expect(result.status).toBe('valid')
+    expect(result.servers).toEqual([
+      {
+        name: 'filesystem',
+        transport: 'stdio',
+        status: 'enabled',
+        command: 'npx',
+        env: undefined
+      },
+      { name: 'docs', transport: 'http', status: 'disabled', url: 'https://example.com/sse' }
+    ])
+    // A zcode config without an mcp section (hooks/plugins only) reads as a valid empty one.
+    expect(inspectMcpConfigContent(zcodeCandidate, JSON.stringify({ hooks: {} })).servers).toEqual(
+      []
+    )
+  })
+
   it('reports invalid JSON without exposing file contents', () => {
     const result = inspectMcpConfigContent(workspaceCandidate, '{"API_TOKEN":"secret-token",}')
     expect(result.status).toBe('invalid')
@@ -240,10 +276,10 @@ describe('mcp-config', () => {
   })
 
   it('plans directory discovery before reading candidate files', () => {
-    expect(getMcpConfigParentDirs()).toEqual(['.cursor', '.claude'])
+    expect(getMcpConfigParentDirs()).toEqual(['.cursor', '.claude', '.zcode'])
     expect(
       MCP_CONFIG_CANDIDATES.map((candidate) => getMcpConfigCandidateParentDir(candidate))
-    ).toEqual(['', '.cursor', '', '.claude'])
+    ).toEqual(['', '.cursor', '', '.claude', '.zcode'])
 
     const entriesByRelativeDir = new Map([
       [

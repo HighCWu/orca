@@ -5,10 +5,12 @@ import type {
   OpenCodeUsageSnapshot
 } from '../../shared/opencode-usage-types'
 import type { MuseUsageBreakdownKind, MuseUsageSnapshot } from '../../shared/muse-usage-types'
+import type { ZcodeUsageBreakdownKind, ZcodeUsageSnapshot } from '../../shared/zcode-usage-types'
 import type {
   CodexRateLimitResetResult,
   RateLimitRuntimeTarget,
-  RateLimitState
+  RateLimitState,
+  ZcodeRateLimitResetResult
 } from '../../shared/rate-limit-types'
 
 export type UsageProviderSnapshot = {
@@ -47,11 +49,14 @@ export type OpenCodeUsageApi = UsageProviderApi<OpenCodeUsageSnapshot, OpenCodeU
 
 export type MuseUsageApi = UsageProviderApi<MuseUsageSnapshot, MuseUsageBreakdownKind>
 
+export type ZcodeUsageApi = UsageProviderApi<ZcodeUsageSnapshot, ZcodeUsageBreakdownKind>
+
 export type RateLimitsApi = {
   get: () => Promise<RateLimitState>
   refresh: () => Promise<RateLimitState>
   refreshCodexForTarget: (target: RateLimitRuntimeTarget) => Promise<RateLimitState>
   consumeCodexResetCredit: () => Promise<CodexRateLimitResetResult>
+  consumeZcodeResetCredit: (resetType?: 'FIVE_HOUR' | 'WEEK') => Promise<ZcodeRateLimitResetResult>
   refreshClaudeForTarget: (target: RateLimitRuntimeTarget) => Promise<RateLimitState>
   fetchInactiveClaudeAccounts: () => Promise<void>
   fetchInactiveCodexAccounts: () => Promise<void>

@@ -4,6 +4,10 @@ import {
   type CodexResetCreditAttemptLedger
 } from '../../../shared/codex-reset-credit-attempt-ledger'
 import {
+  parseZcodeResetCreditAttempts,
+  type ZcodeResetCreditAttempts
+} from '../../../shared/zcode-reset-credit-attempts'
+import {
   stopAfterFailedPrimaryStateMutation,
   type PrimaryStateWriteOperationsRuntime
 } from './primary-state-write-runtime'
@@ -151,6 +155,30 @@ export class PrimaryStateWriteOperations {
         rollback: () => {
           if (runtime.state.codexResetCreditAttemptLedger === next) {
             runtime.state.codexResetCreditAttemptLedger = previous
+          }
+        }
+      }
+    })
+  }
+
+  getZcodeResetCreditAttempts(): ZcodeResetCreditAttempts {
+    return parseZcodeResetCreditAttempts(
+      this[primaryStateWriteOperationsContext].runtime.state.zcodeResetCreditAttempts
+    )
+  }
+
+  replaceZcodeResetCreditAttemptsAndFlush(attempts: ZcodeResetCreditAttempts): Promise<void> {
+    const { runtime } = this[primaryStateWriteOperationsContext]
+    const next = parseZcodeResetCreditAttempts(attempts)
+    return this.runDurableMutation(() => {
+      const previous = runtime.state.zcodeResetCreditAttempts
+      runtime.state.zcodeResetCreditAttempts = next
+      runtime.dirtyProfileStateDomains?.add('zcodeResetCreditAttempts')
+      return {
+        value: undefined,
+        rollback: () => {
+          if (runtime.state.zcodeResetCreditAttempts === next) {
+            runtime.state.zcodeResetCreditAttempts = previous
           }
         }
       }

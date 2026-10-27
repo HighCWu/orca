@@ -36,6 +36,7 @@ export function attachMainWindowCoreServices(
   const codexUsage = state.codexUsage
   const openCodeUsage = state.openCodeUsage
   const museUsage = state.museUsage
+  const zcodeUsage = state.zcodeUsage
   const codexAccounts = state.codexAccounts
   const claudeAccounts = state.claudeAccounts
   const rateLimits = state.rateLimits
@@ -43,6 +44,7 @@ export function attachMainWindowCoreServices(
   const keybindings = state.keybindings
   const codexRuntimeHome = state.codexRuntimeHome
   const claudeRuntimeAuth = state.claudeRuntimeAuth
+  const zcodeResetCredits = state.zcodeResetCredits
   if (
     !store ||
     !runtime ||
@@ -51,7 +53,9 @@ export function attachMainWindowCoreServices(
     !codexUsage ||
     !openCodeUsage ||
     !museUsage ||
+    !zcodeUsage ||
     !codexAccounts ||
+    !zcodeResetCredits ||
     !claudeAccounts ||
     !rateLimits ||
     !automations ||
@@ -69,7 +73,9 @@ export function attachMainWindowCoreServices(
     codexUsage,
     openCodeUsage,
     museUsage,
+    zcodeUsage,
     codexAccounts,
+    zcodeResetCredits,
     claudeAccounts,
     rateLimits,
     window.webContents.id,

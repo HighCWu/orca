@@ -1,0 +1,267 @@
+{
+  "goldenFormatVersion": 6,
+  "operation": "accounts.zcode-reset-credit",
+  "family": "components.zcode-reset-credit",
+  "namedDeltas": [],
+  "values": {
+    "0003a9d2e82c": {
+      "settled": {
+        "resetType": "FIVE_HOUR",
+        "snapshot": {
+          "claude": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "accounts": [],
+            "activeAccountId": {
+              "$rpc": "null"
+            }
+          },
+          "rateLimits": {
+            "claude": {
+              "$rpc": "null"
+            },
+            "claudeTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "codex": {
+              "$rpc": "null"
+            },
+            "codexTarget": {
+              "runtime": "host",
+              "wslDistro": {
+                "$rpc": "null"
+              }
+            },
+            "inactiveClaudeAccounts": [],
+            "inactiveCodexAccounts": [],
+            "zcode": {
+              "error": {
+                "$rpc": "null"
+              },
+              "provider": "zcode",
+              "rateLimitResetCredits": {
+                "availableCount": 0
+              },
+              "session": {
+                "$rpc": "null"
+              },
+              "status": "ok",
+              "updatedAt": 1700000000000,
+              "weekly": {
+                "$rpc": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    "0a07efb53f1e": {
+      "settled": {
+        "$rpc": "null"
+      }
+    },
+    "82bfab9533fb": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"accounts.consumeZcodeResetCredit\",\"params\":{\"resetType\":\"FIVE_HOUR\"}}"
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "987b15dbc028": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "bdfd2e282e9e": {
+      "name": "accounts.consumeZcodeResetCredit#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "accounts.consumeZcodeResetCredit"
+        },
+        {
+          "name": "params",
+          "value": {
+            "resetType": "FIVE_HOUR"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 90000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "snapshot": {
+              "claude": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "codex": {
+                "accounts": [],
+                "activeAccountId": {
+                  "$rpc": "null"
+                }
+              },
+              "rateLimits": {
+                "claude": {
+                  "$rpc": "null"
+                },
+                "codex": {
+                  "$rpc": "null"
+                },
+                "inactiveClaudeAccounts": [],
+                "inactiveCodexAccounts": [],
+                "zcode": {
+                  "error": {
+                    "$rpc": "null"
+                  },
+                  "provider": "zcode",
+                  "rateLimitResetCredits": {
+                    "availableCount": 0
+                  },
+                  "session": {
+                    "$rpc": "null"
+                  },
+                  "status": "ok",
+                  "updatedAt": 1700000000000,
+                  "weekly": {
+                    "$rpc": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "e978fd14e3a9": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "claude": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "codex": {
+          "accounts": [],
+          "activeAccountId": {
+            "$rpc": "null"
+          }
+        },
+        "rateLimits": {
+          "claude": {
+            "$rpc": "null"
+          },
+          "claudeTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "codex": {
+            "$rpc": "null"
+          },
+          "codexTarget": {
+            "runtime": "host",
+            "wslDistro": {
+              "$rpc": "null"
+            }
+          },
+          "inactiveClaudeAccounts": [],
+          "inactiveCodexAccounts": [],
+          "zcode": {
+            "error": {
+              "$rpc": "null"
+            },
+            "provider": "zcode",
+            "rateLimitResetCredits": {
+              "availableCount": 0
+            },
+            "session": {
+              "$rpc": "null"
+            },
+            "status": "ok",
+            "updatedAt": 1700000000000,
+            "weekly": {
+              "$rpc": "null"
+            }
+          }
+        }
+      }
+    }
+  },
+  "recording": {
+    "scenario": "zcode-five-hour-reset-credit-consumed",
+    "checkpoints": [
+      {
+        "id": "requested",
+        "observation": {
+          "sender": ["987b15dbc028"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "9270aeb7d9c6"
+          },
+          "state": "0a07efb53f1e",
+          "effects": []
+        }
+      },
+      {
+        "id": "consumed",
+        "observation": {
+          "sender": ["bdfd2e282e9e"],
+          "payloads": ["82bfab9533fb"],
+          "settlements": {
+            "confirm": "e978fd14e3a9"
+          },
+          "state": "0003a9d2e82c",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

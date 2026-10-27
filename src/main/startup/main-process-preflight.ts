@@ -83,6 +83,7 @@ import { initClaudeUsagePath } from '../claude-usage/store'
 import { initCodexUsagePath } from '../codex-usage/store'
 import { initOpenCodeUsagePath } from '../opencode-usage/store'
 import { initMuseUsagePath } from '../muse-usage/store'
+import { initZcodeUsagePath } from '../zcode-usage/store'
 import { registerDocPreviewSchemePrivileges } from '../browser/doc-preview-protocol'
 import { MEDIA_PREVIEW_CUSTOM_SCHEME } from '../media/media-preview-protocol'
 import { JIRA_IMAGE_CUSTOM_SCHEME } from '../jira/attachments/image-protocol'
@@ -308,6 +309,7 @@ function initializeMainProcessPreflight(options: MainProcessPreflightOptions): b
   initCodexUsagePath()
   initOpenCodeUsagePath()
   initMuseUsagePath()
+  initZcodeUsagePath()
   // Register preview privileges before ready freezes the table or webviews lose fetch/secure-origin access.
   registerDocPreviewSchemePrivileges([MEDIA_PREVIEW_CUSTOM_SCHEME, JIRA_IMAGE_CUSTOM_SCHEME])
   // Install Crashpad before first renderer; earlier CHECK failures have exit-code evidence only.

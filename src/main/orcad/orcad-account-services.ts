@@ -113,7 +113,8 @@ export function createOrcadAccountServices(args: {
       runtime.setAccountServices({
         claudeAccounts: services.claudeAccounts,
         codexAccounts: services.codexAccounts,
-        rateLimits: services.rateLimits
+        rateLimits: services.rateLimits,
+        zcodeResetCredits: services.zcodeResetCredits
       })
       runtime.setCommitMessageAgentEnvironmentResolvers({
         prepareForCodexLaunch: prepareCodexHome,

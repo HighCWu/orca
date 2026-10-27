@@ -7,6 +7,7 @@ import { fetchGeminiRateLimits } from './gemini-usage-fetcher'
 import { fetchKimiRateLimits } from './kimi-fetcher'
 import { fetchMiniMaxRateLimits } from './minimax/minimax-fetcher'
 import { fetchGrokRateLimits } from './grok-fetcher'
+import type * as ZcodeUsageFetcherModule from './zcode-usage-fetcher'
 import { fetchZcodeRateLimits } from './zcode-usage-fetcher'
 import { readGrokAuthSession } from './grok-auth'
 import { fetchOpenCodeGoUsage } from './opencode-go-usage-source-selection'
@@ -41,8 +42,17 @@ vi.mock('./opencode-go-usage-source-selection', () => ({
   fetchOpenCodeGoUsage: vi.fn()
 }))
 
-vi.mock('./zcode-usage-fetcher', () => ({
+vi.mock('./zcode-usage-fetcher', async (importOriginal) => ({
+  ...(await importOriginal<typeof ZcodeUsageFetcherModule>()),
   fetchZcodeRateLimits: vi.fn()
+}))
+
+vi.mock('../zcode/zcode-reset-credits', () => ({
+  redeemZcodeResetCredit: vi.fn(),
+  fetchZcodeResetCredits: vi.fn(() => Promise.resolve(null)),
+  readZcodeResetAccountId: vi.fn(() => null),
+  requestZcodeResetOpportunity: vi.fn(),
+  ZcodeResetOpportunityThrottledError: class extends Error {}
 }))
 
 vi.mock('./antigravity-usage-fetcher', () => ({

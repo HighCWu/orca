@@ -25,7 +25,10 @@ const RateLimitResetCreditsSchema = z
     availableCount: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
     totalEarnedCount: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
     nextExpiresAt: TimestampSchema.nullable().optional(),
-    credits: z.array(RateLimitResetCreditSchema).optional()
+    credits: z.array(RateLimitResetCreditSchema).optional(),
+    // Why: the GLM plan reports its weekly-window pool beside the five-hour one.
+    weekAvailableCount: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
+    weekNextExpiresAt: TimestampSchema.nullable().optional()
   })
   .passthrough()
 
@@ -40,7 +43,8 @@ export const ProviderRateLimitsSchema = z
       'minimax',
       'grok',
       'antigravity',
-      'cursor'
+      'cursor',
+      'zcode'
     ]),
     session: RateLimitWindowSchema.nullable(),
     weekly: RateLimitWindowSchema.nullable(),
@@ -178,6 +182,8 @@ export const AccountsSnapshotSchema = z
         // Older compatible hosts omit runtime target fields and retain host-only selection semantics.
         claudeTarget: RateLimitRuntimeTargetSchema.default(HostRateLimitRuntimeTarget),
         codexTarget: RateLimitRuntimeTargetSchema.default(HostRateLimitRuntimeTarget),
+        // Why: hosts predating the GLM Coding Plan lane omit it.
+        zcode: ProviderRateLimitsSchema.nullable().optional(),
         inactiveClaudeAccounts: z.array(InactiveAccountUsageSchema),
         inactiveCodexAccounts: z.array(InactiveAccountUsageSchema)
       })
@@ -197,6 +203,13 @@ export const AccountsSnapshotSchema = z
         code: 'custom',
         message: 'Codex limits use the wrong provider identity',
         path: ['rateLimits', 'codex', 'provider']
+      })
+    }
+    if (snapshot.rateLimits.zcode && snapshot.rateLimits.zcode.provider !== 'zcode') {
+      context.addIssue({
+        code: 'custom',
+        message: 'GLM Coding Plan limits use the wrong provider identity',
+        path: ['rateLimits', 'zcode', 'provider']
       })
     }
     for (const [index, entry] of snapshot.rateLimits.inactiveClaudeAccounts.entries()) {

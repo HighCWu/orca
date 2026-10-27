@@ -8,6 +8,7 @@ describe('isStatusBarItemAvailable', () => {
     expect(isStatusBarItemAvailable('resource-usage', [])).toBe(true)
     expect(isStatusBarItemAvailable('ports', [])).toBe(true)
     expect(isStatusBarItemAvailable('opencode-go', [])).toBe(true)
+    expect(isStatusBarItemAvailable('zcode', [])).toBe(true)
   })
 
   it('keeps CLI items visible while detection is in flight', () => {
@@ -26,7 +27,6 @@ describe('isStatusBarItemAvailable', () => {
     expect(isStatusBarItemAvailable('gemini', ['claude', 'codex'])).toBe(false)
     expect(isStatusBarItemAvailable('antigravity', ['claude', 'codex'])).toBe(false)
     expect(isStatusBarItemAvailable('grok', ['claude', 'kimi'])).toBe(false)
-    expect(isStatusBarItemAvailable('zcode', ['claude', 'kimi'])).toBe(false)
   })
 
   it('shows CLI items detected on PATH', () => {

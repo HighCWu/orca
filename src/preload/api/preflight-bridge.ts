@@ -28,8 +28,15 @@ export const preflightApi = {
   }> => ipcRenderer.invoke('preflight:check', args),
   detectAgents: (args?: PreflightRuntimeContext): Promise<string[]> =>
     ipcRenderer.invoke('preflight:detectAgents', args),
-  zcodeInteractiveCapability: (): Promise<ZCodeInteractiveCapability> =>
-    ipcRenderer.invoke('preflight:zcodeInteractiveCapability'),
+  zcodeInteractiveCapability: (args?: {
+    commandOverride?: string
+  }): Promise<ZCodeInteractiveCapability> =>
+    ipcRenderer.invoke('preflight:zcodeInteractiveCapability', args),
+  zcodeSetupInvocation: (args: {
+    commandOverride?: string
+    cliArgs: string[]
+  }): Promise<{ command: string; args: string[]; env: Record<string, string> }> =>
+    ipcRenderer.invoke('preflight:zcodeSetupInvocation', args),
   refreshAgents: (args?: PreflightRuntimeContext): Promise<RefreshAgentsResult> =>
     ipcRenderer.invoke('preflight:refreshAgents', args),
   detectRemoteAgents: (args: { connectionId: string }): Promise<string[]> =>
