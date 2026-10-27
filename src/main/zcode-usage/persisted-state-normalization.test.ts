@@ -78,6 +78,90 @@ describe('normalizeZcodeUsageState', () => {
     expect(normalizeZcodeUsageState(state).processedDatabases).toEqual([])
   })
 
+  it('drops source-cache records with malformed nested rollups', () => {
+    const validSession = {
+      sessionId: 'valid',
+      locationBreakdown: [],
+      modelBreakdown: [],
+      locationModelBreakdown: []
+    }
+    const state = JSON.parse(
+      JSON.stringify({
+        schemaVersion: ZCODE_USAGE_SCHEMA_VERSION,
+        worktreeFingerprint: null,
+        processedDatabases: [
+          {
+            path: '/tmp/invalid-session.db',
+            mtimeMs: 1,
+            size: 1,
+            sessions: [{ ...validSession, locationBreakdown: null }],
+            dailyAggregates: []
+          },
+          {
+            path: '/tmp/invalid-breakdown-entry.db',
+            mtimeMs: 1,
+            size: 1,
+            sessions: [{ ...validSession, modelBreakdown: [null] }],
+            dailyAggregates: []
+          },
+          {
+            path: '/tmp/invalid-daily.db',
+            mtimeMs: 1,
+            size: 1,
+            sessions: [validSession],
+            dailyAggregates: [null]
+          }
+        ],
+        sessions: [],
+        dailyAggregates: [],
+        scanState: {
+          enabled: true,
+          lastScanStartedAt: null,
+          lastScanCompletedAt: null,
+          lastScanError: null
+        }
+      })
+    )
+
+    expect(normalizeZcodeUsageState(state).processedDatabases).toEqual([])
+  })
+
+  it('drops malformed top-level rollups without rejecting valid siblings', () => {
+    const state = JSON.parse(
+      JSON.stringify({
+        schemaVersion: ZCODE_USAGE_SCHEMA_VERSION,
+        worktreeFingerprint: null,
+        processedDatabases: [],
+        sessions: [
+          {
+            sessionId: 'invalid',
+            locationBreakdown: null,
+            modelBreakdown: [],
+            locationModelBreakdown: []
+          },
+          {
+            sessionId: 'valid',
+            locationBreakdown: [],
+            modelBreakdown: [],
+            locationModelBreakdown: []
+          }
+        ],
+        dailyAggregates: [null, { day: '2026-10-27' }],
+        scanState: {
+          enabled: true,
+          lastScanStartedAt: null,
+          lastScanCompletedAt: null,
+          lastScanError: null
+        }
+      })
+    )
+
+    expect(normalizeZcodeUsageState(state)).toMatchObject({
+      sessions: [{ sessionId: 'valid' }],
+      dailyAggregates: [{ day: '2026-10-27' }]
+    })
+  })
+
   it('drops non-array rollups from a corrupt persisted cache', () => {
     const state = JSON.parse(
       JSON.stringify({

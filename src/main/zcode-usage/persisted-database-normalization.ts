@@ -4,8 +4,32 @@ import type {
   ZcodeUsageSession
 } from './types'
 
-export function normalizeZcodeUsageSessions(sessions: ZcodeUsageSession[]): ZcodeUsageSession[] {
-  return sessions.map((session) => ({
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object'
+}
+
+function isObjectArray(value: unknown): value is Record<string, unknown>[] {
+  return Array.isArray(value) && value.every(isObject)
+}
+
+function isZcodeUsageSession(value: unknown): value is ZcodeUsageSession {
+  return (
+    isObject(value) &&
+    isObjectArray(value.locationBreakdown) &&
+    isObjectArray(value.modelBreakdown) &&
+    isObjectArray(value.locationModelBreakdown)
+  )
+}
+
+function isZcodeUsageDailyAggregate(value: unknown): value is ZcodeUsageDailyAggregate {
+  return isObject(value)
+}
+
+export function normalizeZcodeUsageSessions(sessions: unknown): ZcodeUsageSession[] {
+  if (!Array.isArray(sessions)) {
+    return []
+  }
+  return sessions.filter(isZcodeUsageSession).map((session) => ({
     ...session,
     cacheReadInputTokens: session.cacheReadInputTokens ?? 0,
     cacheWriteInputTokens: session.cacheWriteInputTokens ?? 0,
@@ -28,9 +52,12 @@ export function normalizeZcodeUsageSessions(sessions: ZcodeUsageSession[]): Zcod
 }
 
 export function normalizeZcodeUsageDailyAggregates(
-  dailyAggregates: ZcodeUsageDailyAggregate[]
+  dailyAggregates: unknown
 ): ZcodeUsageDailyAggregate[] {
-  return dailyAggregates.map((aggregate) => ({
+  if (!Array.isArray(dailyAggregates)) {
+    return []
+  }
+  return dailyAggregates.filter(isZcodeUsageDailyAggregate).map((aggregate) => ({
     ...aggregate,
     cacheReadInputTokens: aggregate.cacheReadInputTokens ?? 0,
     cacheWriteInputTokens: aggregate.cacheWriteInputTokens ?? 0
@@ -43,10 +70,11 @@ export function normalizeZcodeUsagePersistedDatabases(
   return (databases ?? [])
     .filter(
       (database) =>
-        database !== null &&
-        typeof database === 'object' &&
+        isObject(database) &&
         Array.isArray(database.sessions) &&
-        Array.isArray(database.dailyAggregates)
+        database.sessions.every(isZcodeUsageSession) &&
+        Array.isArray(database.dailyAggregates) &&
+        database.dailyAggregates.every(isZcodeUsageDailyAggregate)
     )
     .map((database) => ({
       ...database,
