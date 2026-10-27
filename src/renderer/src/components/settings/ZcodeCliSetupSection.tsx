@@ -173,6 +173,7 @@ export function ZcodeCliSetupSection(): React.JSX.Element {
             autoScrollIntoView={false}
             terminalTopMarginPx={8}
             worktreeId="zcode-sign-in-terminal"
+            forceHostRuntime
           />
         </Suspense>
       ) : null}

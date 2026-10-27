@@ -18,13 +18,15 @@ vi.mock('../onboarding/OnboardingInlineCommandTerminal', () => ({
   OnboardingInlineCommandTerminal: ({
     command,
     description,
-    prepareCommandForShell
+    prepareCommandForShell,
+    forceHostRuntime
   }: {
     command: string
     description: string
     prepareCommandForShell?: (command: string, shell?: string) => string
+    forceHostRuntime?: boolean
   }) => (
-    <div data-testid="setup-terminal">
+    <div data-testid="setup-terminal" data-force-host-runtime={String(forceHostRuntime)}>
       <output>{prepareCommandForShell?.(command, undefined) ?? command}</output>
       <p>{description}</p>
     </div>
@@ -37,11 +39,13 @@ vi.mock('./SearchableSetting', () => ({
 beforeEach(() => {
   mocks.settings.agentCmdOverrides.zcode = ''
   mocks.capability.mockReset().mockResolvedValue('interactive')
-  mocks.setupInvocation.mockReset().mockImplementation(async ({ cliArgs }: { cliArgs: string[] }) => ({
-    command: 'zcode',
-    args: cliArgs,
-    env: {}
-  }))
+  mocks.setupInvocation
+    .mockReset()
+    .mockImplementation(async ({ cliArgs }: { cliArgs: string[] }) => ({
+      command: 'zcode',
+      args: cliArgs,
+      env: {}
+    }))
   Object.defineProperty(window, 'api', {
     configurable: true,
     value: {
@@ -70,6 +74,7 @@ describe('ZCode CLI-owned sign-in setup', () => {
     render(<ZcodeCliSetupSection />)
     fireEvent.click(screen.getByRole('button', { name: label }))
     expect(await screen.findByTestId('setup-terminal')).toHaveTextContent(command)
+    expect(screen.getByTestId('setup-terminal')).toHaveAttribute('data-force-host-runtime', 'true')
     expect(screen.getByRole('button', { name: 'Z.AI browser sign-in' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'BigModel browser sign-in' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'ZCode API-key setup' })).toBeDisabled()
