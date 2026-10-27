@@ -59,6 +59,8 @@ describe('normalizeZcodeUsageState', () => {
         schemaVersion: ZCODE_USAGE_SCHEMA_VERSION,
         worktreeFingerprint: null,
         processedDatabases: [
+          null,
+          'invalid',
           { path: '/tmp/missing-sessions.db', mtimeMs: 1, size: 1, dailyAggregates: [] },
           { path: '/tmp/missing-daily.db', mtimeMs: 1, size: 1, sessions: [] }
         ],
