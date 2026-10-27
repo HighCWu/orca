@@ -42,7 +42,11 @@ export function normalizeZcodeUsagePersistedDatabases(
 ): ZcodeUsagePersistedDatabase[] {
   return (databases ?? [])
     .filter(
-      (database) => Array.isArray(database.sessions) && Array.isArray(database.dailyAggregates)
+      (database) =>
+        database !== null &&
+        typeof database === 'object' &&
+        Array.isArray(database.sessions) &&
+        Array.isArray(database.dailyAggregates)
     )
     .map((database) => ({
       ...database,
