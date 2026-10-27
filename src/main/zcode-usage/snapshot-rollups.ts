@@ -12,13 +12,21 @@ import type { ZcodeUsageDailyAggregate, ZcodeUsageSession } from './types'
 
 type TokenTotals = Pick<
   ZcodeUsageDailyPoint,
-  'inputTokens' | 'cachedInputTokens' | 'outputTokens' | 'reasoningOutputTokens' | 'totalTokens'
+  | 'inputTokens'
+  | 'cachedInputTokens'
+  | 'cacheReadInputTokens'
+  | 'cacheWriteInputTokens'
+  | 'outputTokens'
+  | 'reasoningOutputTokens'
+  | 'totalTokens'
 >
 
 function emptyTotals(): TokenTotals {
   return {
     inputTokens: 0,
     cachedInputTokens: 0,
+    cacheReadInputTokens: 0,
+    cacheWriteInputTokens: 0,
     outputTokens: 0,
     reasoningOutputTokens: 0,
     totalTokens: 0
@@ -28,6 +36,8 @@ function emptyTotals(): TokenTotals {
 function addTotals(target: TokenTotals, row: ZcodeUsageDailyAggregate): void {
   target.inputTokens += row.inputTokens
   target.cachedInputTokens += row.cachedInputTokens
+  target.cacheReadInputTokens += row.cacheReadInputTokens
+  target.cacheWriteInputTokens += row.cacheWriteInputTokens
   target.outputTokens += row.outputTokens
   target.reasoningOutputTokens += row.reasoningOutputTokens
   target.totalTokens += row.totalTokens
@@ -129,6 +139,8 @@ export function buildZcodeUsageRecentSessions(
     events: session.eventCount,
     inputTokens: session.totalInputTokens,
     cachedInputTokens: session.totalCachedInputTokens,
+    cacheReadInputTokens: session.cacheReadInputTokens,
+    cacheWriteInputTokens: session.cacheWriteInputTokens,
     outputTokens: session.totalOutputTokens,
     reasoningOutputTokens: session.totalReasoningOutputTokens,
     totalTokens: session.totalTokens

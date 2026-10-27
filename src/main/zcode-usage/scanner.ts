@@ -25,7 +25,17 @@ export const zcodeUsageAggregation = createUsageEventAggregation<
   ZcodeUsageAttributedEvent,
   ZcodeUsageMetric
 >({
-  metric: { empty: () => ({}), fromEvent: () => ({}), fold: () => {} },
+  metric: {
+    empty: () => ({ cacheReadInputTokens: 0, cacheWriteInputTokens: 0 }),
+    fromEvent: (event) => ({
+      cacheReadInputTokens: event.cacheReadInputTokens,
+      cacheWriteInputTokens: event.cacheWriteInputTokens
+    }),
+    fold: (target, source) => {
+      target.cacheReadInputTokens += source.cacheReadInputTokens
+      target.cacheWriteInputTokens += source.cacheWriteInputTokens
+    }
+  },
   cloneSessionForMerge: (session) => ({
     ...session,
     locationBreakdown: session.locationBreakdown.map((entry) => ({ ...entry })),
@@ -121,10 +131,12 @@ export async function scanZcodeUsageDatabases(
   }
 
   const parsedByPath = new Map<string, ZcodeUsagePersistedDatabase>()
+  let parseError: unknown
   for (const [index, dbPath] of pathsToParse.entries()) {
     try {
       parsedByPath.set(dbPath, await parseZcodeUsageDatabase(dbPath, resolveWorktree, signal))
-    } catch {
+    } catch (error) {
+      parseError = error
       const stale = previousByPath.get(dbPath)
       if (stale) {
         reusedByPath.set(dbPath, stale)
@@ -134,6 +146,9 @@ export async function scanZcodeUsageDatabases(
     if ((index + 1) % YIELD_EVERY_DATABASES === 0) {
       await yieldToEventLoop()
     }
+  }
+  if (parseError && reusedByPath.size === 0 && parsedByPath.size === 0) {
+    throw parseError
   }
 
   const processedDatabases: ZcodeUsagePersistedDatabase[] = []

@@ -168,8 +168,19 @@ export function ZcodeUsagePane(): React.JSX.Element {
             icon={<Activity className="size-4" />}
           />
           <StatCard
-            label={translate('auto.components.stats.OpenCodeUsagePane.603504ee3b', 'Cached input')}
-            value={formatTokens(summary?.cachedInputTokens ?? 0)}
+            label={translate(
+              'auto.components.stats.ZcodeUsagePane.cacheReadInput',
+              'Cache read input'
+            )}
+            value={formatTokens(summary?.cacheReadInputTokens ?? 0)}
+            icon={<DatabaseZap className="size-4" />}
+          />
+          <StatCard
+            label={translate(
+              'auto.components.stats.ZcodeUsagePane.cacheWriteInput',
+              'Cache write input'
+            )}
+            value={formatTokens(summary?.cacheWriteInputTokens ?? 0)}
             icon={<DatabaseZap className="size-4" />}
           />
           <StatCard

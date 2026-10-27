@@ -6,6 +6,11 @@ import * as transcriptFs from '../native-chat/wsl-transcript-fs-access'
 import { getLocalUsageDay } from '../usage/usage-calendar-range'
 import type { UsageWorktreeResolver } from '../usage/usage-worktree-resolver'
 import { parseZcodeUsageDatabase, scanZcodeUsageDatabases } from './scanner'
+import {
+  buildZcodeUsageDailyPoints,
+  buildZcodeUsageRecentSessions,
+  buildZcodeUsageSummary
+} from './snapshot-rollups'
 import { writeZcodeUsageDatabase, ZCODE_USAGE_FIXTURE_EPOCH_MS } from './zcode-usage-sqlite-fixture'
 
 const DAY = getLocalUsageDay(new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS).toISOString())
@@ -97,6 +102,8 @@ describe('zcode usage scanner', () => {
       totalInputTokens: 900,
       // Cache reads and cache writes are subsets of the recorded input total.
       totalCachedInputTokens: 820,
+      cacheReadInputTokens: 800,
+      cacheWriteInputTokens: 20,
       totalOutputTokens: 100,
       totalReasoningOutputTokens: 40,
       totalTokens: 1_000,
@@ -112,6 +119,34 @@ describe('zcode usage scanner', () => {
 
     expect(processed.dailyAggregates).toHaveLength(3)
     expect(processed.dailyAggregates.every((row) => row.day === DAY)).toBe(true)
+
+    const summary = buildZcodeUsageSummary(
+      'all',
+      'all',
+      processed.dailyAggregates,
+      processed.sessions
+    )
+    expect(summary).toMatchObject({
+      cachedInputTokens: 1_300,
+      cacheReadInputTokens: 1_280,
+      cacheWriteInputTokens: 20
+    })
+    expect(buildZcodeUsageDailyPoints(processed.dailyAggregates)).toEqual([
+      expect.objectContaining({
+        day: DAY,
+        cachedInputTokens: 1_300,
+        cacheReadInputTokens: 1_280,
+        cacheWriteInputTokens: 20
+      })
+    ])
+    expect(buildZcodeUsageRecentSessions(processed.sessions)).toContainEqual(
+      expect.objectContaining({
+        sessionId: 'session_main',
+        cachedInputTokens: 820,
+        cacheReadInputTokens: 800,
+        cacheWriteInputTokens: 20
+      })
+    )
   })
 
   it('reuses a scanned database until its stat changes, then reparses it', async () => {
@@ -156,6 +191,18 @@ describe('zcode usage scanner', () => {
     await expect(scanZcodeUsageDatabases([], first.processedDatabases, undefined)).rejects.toThrow(
       'Generated metadata failure'
     )
+  })
+
+  it('rejects a first-scan parse failure instead of reporting empty usage', async () => {
+    writeFileSync(dbPath, 'not a sqlite database')
+
+    await expect(scanZcodeUsageDatabases([], [], undefined)).rejects.toThrow()
+
+    rmSync(dbPath)
+    writeZcodeUsageDatabase(dbPath, {
+      sessions: [{ id: 'session_main', directory: '/repo' }],
+      usage: [{ id: 'restore', sessionId: 'session_main', inputTokens: 1, outputTokens: 1 }]
+    })
   })
 
   it('keeps the last good snapshot when a changed database is temporarily unreadable', async () => {
