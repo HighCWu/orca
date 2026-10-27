@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { AgentSessionBackgroundTaskRunState } from '../../shared/agent-session-background-task-wire'
 import { ZCODE_RATE_LIMIT_CODES } from '../../shared/agent-session-failure'
-import { backgroundTaskJournalBody } from '../../shared/native-chat-background-task-row'
+import { backgroundTaskJournalBody } from '../../shared/native-chat/input/native-chat-background-task-row'
 import type { NativeChatBackgroundTaskBlock } from '../../shared/native-chat-types'
 import type { ProviderTimelineEvent } from '../native-chat/agent-session-timeline/provider-timeline-event'
 import { journalToolPayload } from '../native-chat/agent-session-journal/journal-payload-bounds'

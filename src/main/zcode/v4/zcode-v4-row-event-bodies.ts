@@ -1,5 +1,5 @@
 import { journalToolPayload } from '../../native-chat/agent-session-journal/journal-payload-bounds'
-import { backgroundTaskJournalBody } from '../../../shared/native-chat-background-task-row'
+import { backgroundTaskJournalBody } from '../../../shared/native-chat/input/native-chat-background-task-row'
 import type { NativeChatBackgroundTaskBlock } from '../../../shared/native-chat-types'
 import type { AgentSessionBackgroundTaskRunState } from '../../../shared/agent-session-background-task-wire'
 import type { ZcodeV4BackgroundWork, ZcodeV4ConversationRow } from './zcode-v4-conversation-frames'
