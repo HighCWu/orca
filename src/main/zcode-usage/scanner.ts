@@ -100,12 +100,11 @@ export async function scanZcodeUsageDatabases(
     let databaseInfo: ZcodeUsageProcessedDatabase
     try {
       databaseInfo = await getProcessedDatabaseInfo(dbPath, signal)
-    } catch {
-      const stale = previousByPath.get(dbPath)
-      if (stale) {
-        reusedByPath.set(dbPath, stale)
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        continue
       }
-      continue
+      throw error
     }
     const previous = previousByPath.get(dbPath)
     const canReuse =
