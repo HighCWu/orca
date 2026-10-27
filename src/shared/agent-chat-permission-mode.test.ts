@@ -21,6 +21,13 @@ describe('agent chat permission modes', () => {
     expect(agentChatPermissionModes('pi')).toBeNull()
   })
 
+  it('offers ZCode Ask and Full access like the ACP agents', () => {
+    expect(agentChatPermissionModes('zcode')?.modes).toEqual(['ask', 'full-access'])
+    expect(newChatPermissionMode('zcode', 'accept-edits')).toBe('ask')
+    expect(newChatPermissionMode('zcode', 'full-access')).toBe('full-access')
+    expect(newChatPermissionMode('zcode', undefined)).toBe('ask')
+  })
+
   it('seeds a new chat from the host setting, narrowed to what its agent offers', () => {
     expect(newChatPermissionMode('codex', 'accept-edits')).toBe('ask')
     expect(newChatPermissionMode('claude', 'accept-edits')).toBe('accept-edits')

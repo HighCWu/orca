@@ -7,7 +7,7 @@ import { summarizeMcpServer } from './mcp-server-inspection'
 
 export { maskMcpEnv } from './mcp-server-inspection'
 
-export type McpConfigFormat = 'workspace' | 'cursor' | 'claude'
+export type McpConfigFormat = 'workspace' | 'cursor' | 'claude' | 'zcode'
 
 export type McpConfigCandidate = {
   format: McpConfigFormat
@@ -66,6 +66,14 @@ export const MCP_CONFIG_CANDIDATES: McpConfigCandidate[] = [
     label: 'Claude workspace',
     relativePath: '.claude/mcp.json',
     serversPath: ['mcpServers']
+  },
+  {
+    // The zcode CLI auto-discovers this file root-to-cwd and reads MCP servers
+    // from the nested `mcp.servers`; the same file may also carry hooks/plugins.
+    format: 'zcode',
+    label: 'ZCode',
+    relativePath: '.zcode/config.json',
+    serversPath: ['mcp', 'servers']
   }
 ]
 

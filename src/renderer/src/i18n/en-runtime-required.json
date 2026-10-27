@@ -2524,6 +2524,9 @@
           "eb6a066185": "claude",
           "eee19cfade": "overview"
         },
+        "UsageOverviewPane": {
+          "noLocalUsageYet": "No local Claude, Codex, OpenCode, or Muse usage found yet. The overview will populate after the next agent session writes token logs."
+        },
         "UsageSessionsTable": {
           "01476891c7": "Last active",
           "0f03975d59": "Events",
@@ -2536,10 +2539,16 @@
           "f6a2c8d019": "Model",
           "faf3444859": "Input"
         },
+        "stats": {
+          "search": {
+            "26bb901fcd": "Orca stats plus Claude, Codex, OpenCode, Muse token analytics and Grok subscription usage."
+          }
+        },
         "usage": {
           "overview": {
             "sections": {
-              "9564a3b21b": "sessions -"
+              "9564a3b21b": "sessions -",
+              "recentCombinedActivity": "Recent combined Claude, Codex, OpenCode, and Muse token activity."
             }
           }
         }

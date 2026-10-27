@@ -38,7 +38,8 @@ export function initializeMainProcessAccountServices(): void {
     !state.claudeUsage ||
     !state.codexUsage ||
     !state.openCodeUsage ||
-    !state.museUsage
+    !state.museUsage ||
+    !state.zcodeUsage
   ) {
     throw new Error('Usage stores must be initialized before account services')
   }
