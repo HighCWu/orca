@@ -9,7 +9,8 @@
 // sibling and launches as itself.
 
 import { existsSync as defaultExistsSync, realpathSync as defaultRealpathSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { homedir } from 'node:os'
+import { posix, win32 } from 'node:path'
 
 const UNIX_WINDOWS_BUNDLE_SEGMENTS = ['resources', 'glm', 'zcode.cjs']
 const MACOS_BUNDLE_SEGMENTS = ['Resources', 'glm', 'zcode.cjs']
@@ -29,10 +30,14 @@ export type ZcodeOfficialRuntimeDeps = {
 }
 
 /** The desktop executable's name inside an install root, per platform. */
+function platformPath(platform: NodeJS.Platform): typeof posix {
+  return platform === 'win32' ? win32 : posix
+}
+
 function electronName(platform: NodeJS.Platform): string {
   switch (platform) {
     case 'darwin':
-      return join('Contents', 'MacOS', 'ZCode')
+      return posix.join('Contents', 'MacOS', 'ZCode')
     case 'win32':
       return 'ZCode.exe'
     case 'aix':
@@ -53,10 +58,11 @@ function runtimeBeside(
   binary: string,
   platform: NodeJS.Platform
 ): ZcodeOfficialRuntime | null {
+  const paths = platformPath(platform)
   const bundle =
     platform === 'darwin'
-      ? join(dirname(dirname(binary)), ...MACOS_BUNDLE_SEGMENTS)
-      : join(dirname(binary), ...UNIX_WINDOWS_BUNDLE_SEGMENTS)
+      ? paths.join(paths.dirname(paths.dirname(binary)), ...MACOS_BUNDLE_SEGMENTS)
+      : paths.join(paths.dirname(binary), ...UNIX_WINDOWS_BUNDLE_SEGMENTS)
   return existsSync(bundle) ? { electron: binary, bundle } : null
 }
 
@@ -77,18 +83,18 @@ export function resolveZcodeOfficialRuntime(
 
 /** Where a desktop install's executable lives, by platform convention. */
 function conventionalElectrons(deps: ZcodeOfficialRuntimeDeps): string[] {
-  const home = deps.home ?? ''
-  const localAppData = deps.localAppData ?? (home ? join(home, 'AppData', 'Local') : '')
+  const platform = deps.platform ?? process.platform
+  const paths = platformPath(platform)
+  const home = deps.home ?? homedir()
+  const localAppData =
+    deps.localAppData ?? process.env.LOCALAPPDATA ?? paths.join(home, 'AppData', 'Local')
   const root = (segments: string[]): string => {
-    const segmentsWithBinary = [...segments, electronName(deps.platform ?? process.platform)]
-    return join(...segmentsWithBinary)
+    const segmentsWithBinary = [...segments, electronName(platform)]
+    return paths.join(...segmentsWithBinary)
   }
-  switch (deps.platform ?? process.platform) {
+  switch (platform) {
     case 'darwin':
-      return [
-        root([home, 'Applications', 'ZCode.app']),
-        root(['/Applications', 'ZCode.app'])
-      ]
+      return [root([home, 'Applications', 'ZCode.app']), root(['/Applications', 'ZCode.app'])]
     case 'win32':
       return [root([localAppData, 'Programs', 'ZCode'])]
     case 'aix':
@@ -120,7 +126,7 @@ export function probeZcodeOfficialRuntimes(
         return beside
       }
       // A candidate may name the install root rather than its executable.
-      const rootBinary = join(command, electronName(platform))
+      const rootBinary = platformPath(platform).join(command, electronName(platform))
       return existsSync(rootBinary) ? runtimeBeside(existsSync, rootBinary, platform) : null
     }
     return null
