@@ -55,10 +55,17 @@ export function selectZcodeUsageRows(db: Database.Database): ZcodeUsageRow[] {
     return []
   }
 
-  const sessionJoin = tableExists(db, 'session')
+  const sessionHasDirectory =
+    tableExists(db, 'session') &&
+    columnExists(db, 'session', 'id') &&
+    columnExists(db, 'session', 'directory')
+  const sessionJoin = sessionHasDirectory
     ? 'LEFT JOIN session s ON s.id = m.session_id'
     : 'LEFT JOIN (SELECT NULL AS id, NULL AS directory) s ON 1 = 0'
-  const tokenTotal = TOKEN_COLUMNS.map((name) => columnSelection(db, name)).join(' + ')
+  const tokenTotal = TOKEN_COLUMNS.map((name) => `COALESCE(${columnSelection(db, name)}, 0)`).join(
+    ' + '
+  )
+  const startedAt = columnSelection(db, 'started_at')
   const selections = [
     'm.session_id',
     's.directory',
@@ -73,7 +80,7 @@ export function selectZcodeUsageRows(db: Database.Database): ZcodeUsageRow[] {
        FROM model_usage m
        ${sessionJoin}
        WHERE ${tokenTotal} > 0
-       ORDER BY m.started_at`
+       ORDER BY ${startedAt}`
     )
     .all() as ZcodeUsageRow[]
 }

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, utimesSync } from 'node:fs'
+import { mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -96,7 +96,7 @@ describe('zcode usage scanner', () => {
       totalCachedInputTokens: 820,
       totalOutputTokens: 100,
       totalReasoningOutputTokens: 40,
-      totalTokens: 1_040,
+      totalTokens: 1_000,
       primaryModel: 'GLM-5.3',
       primaryProjectLabel: 'repo',
       primaryWorktreeId: 'wt-1'
@@ -115,10 +115,17 @@ describe('zcode usage scanner', () => {
     const first = await scanZcodeUsageDatabases([], [], undefined)
     expect(first.processedDatabases).toHaveLength(1)
 
-    // Touch without a content change reuses the cache; sessions come out identical.
+    const [cached] = first.processedDatabases
+    const marker = {
+      ...cached,
+      sessions: [{ ...first.sessions[0], sessionId: 'session_marker' }]
+    }
+    const reused = await scanZcodeUsageDatabases([], [marker], undefined)
+    expect(reused.sessions.map((session) => session.sessionId)).toEqual(['session_marker'])
+
     utimesSync(dbPath, new Date(), new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 5_000))
-    const reused = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
-    expect(reused.sessions).toEqual(first.sessions)
+    const reparsed = await scanZcodeUsageDatabases([], [marker], undefined)
+    expect(reparsed.sessions).toEqual(first.sessions)
 
     rmSync(dbPath)
     writeZcodeUsageDatabase(dbPath, {
@@ -127,5 +134,21 @@ describe('zcode usage scanner', () => {
     const grown = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
     expect(grown.sessions).toHaveLength(1)
     expect(grown.sessions[0]).toMatchObject({ sessionId: 's_new', totalTokens: 10 })
+  })
+
+  it('keeps the last good snapshot when a changed database is temporarily unreadable', async () => {
+    const first = await scanZcodeUsageDatabases([], [], undefined)
+    writeFileSync(dbPath, 'not a sqlite database')
+    utimesSync(dbPath, new Date(), new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 10_000))
+
+    const stale = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
+
+    expect(stale.processedDatabases).toEqual(first.processedDatabases)
+    expect(stale.sessions).toEqual(first.sessions)
+    rmSync(dbPath)
+    writeZcodeUsageDatabase(dbPath, {
+      sessions: [{ id: 'session_main', directory: '/repo' }],
+      usage: [{ id: 'restore', sessionId: 'session_main', inputTokens: 1, outputTokens: 1 }]
+    })
   })
 })

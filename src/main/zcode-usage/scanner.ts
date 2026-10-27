@@ -15,6 +15,7 @@ import type {
   ZcodeUsageDailyAggregate,
   ZcodeUsageMetric,
   ZcodeUsagePersistedDatabase,
+  ZcodeUsageProcessedDatabase,
   ZcodeUsageSession
 } from './types'
 
@@ -35,9 +36,10 @@ export const zcodeUsageAggregation = createUsageEventAggregation<
 
 export async function parseZcodeUsageDatabase(
   dbPath: string,
-  resolveWorktree: UsageWorktreeResolver
+  resolveWorktree: UsageWorktreeResolver,
+  signal?: AbortSignal
 ): Promise<ZcodeUsagePersistedDatabase> {
-  const processedDatabase = await getProcessedDatabaseInfo(dbPath)
+  const processedDatabase = await getProcessedDatabaseInfo(dbPath, signal)
   const db = new Database(dbPath, { readonly: true, fileMustExist: true })
   try {
     db.pragma('query_only = ON')
@@ -64,13 +66,28 @@ export async function parseZcodeUsageDatabase(
 export async function scanZcodeUsageDatabases(
   worktrees: UsageScanWorktreeRef[],
   previousProcessedDatabases: ZcodeUsagePersistedDatabase[],
-  onFilesScanned?: (count: number) => void
+  onFilesScanned?: (count: number) => void,
+  signal?: AbortSignal
 ): Promise<{
   processedDatabases: ZcodeUsagePersistedDatabase[]
   sessions: ZcodeUsageSession[]
   dailyAggregates: ZcodeUsageDailyAggregate[]
 }> {
-  const dbPaths = await listZcodeDatabases()
+  let discoveryError: unknown
+  const dbPaths = await listZcodeDatabases(
+    (_path, error) => {
+      discoveryError = error
+    },
+    (_path, error) => {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
+        discoveryError = error
+      }
+    },
+    signal
+  )
+  if (discoveryError) {
+    throw discoveryError
+  }
   const previousByPath = new Map(
     previousProcessedDatabases.map((database) => [database.path, database])
   )
@@ -80,7 +97,16 @@ export async function scanZcodeUsageDatabases(
   const reusedByPath = new Map<string, ZcodeUsagePersistedDatabase>()
   const pathsToParse: string[] = []
   for (const dbPath of dbPaths) {
-    const databaseInfo = await getProcessedDatabaseInfo(dbPath)
+    let databaseInfo: ZcodeUsageProcessedDatabase
+    try {
+      databaseInfo = await getProcessedDatabaseInfo(dbPath, signal)
+    } catch {
+      const stale = previousByPath.get(dbPath)
+      if (stale) {
+        reusedByPath.set(dbPath, stale)
+      }
+      continue
+    }
     const previous = previousByPath.get(dbPath)
     const canReuse =
       previous &&
@@ -98,9 +124,12 @@ export async function scanZcodeUsageDatabases(
   const parsedByPath = new Map<string, ZcodeUsagePersistedDatabase>()
   for (const [index, dbPath] of pathsToParse.entries()) {
     try {
-      parsedByPath.set(dbPath, await parseZcodeUsageDatabase(dbPath, resolveWorktree))
+      parsedByPath.set(dbPath, await parseZcodeUsageDatabase(dbPath, resolveWorktree, signal))
     } catch {
-      // Unreadable, locked, or vanished mid-scan; the next scan retries it.
+      const stale = previousByPath.get(dbPath)
+      if (stale) {
+        reusedByPath.set(dbPath, stale)
+      }
     }
     onFilesScanned?.(1)
     if ((index + 1) % YIELD_EVERY_DATABASES === 0) {
