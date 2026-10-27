@@ -104,7 +104,13 @@ describe('upstream-written ZCode v2 stores', () => {
                 providerId: 'openai',
                 templateId: 'openai',
                 providerName: 'OpenAI',
-                config: { access: { type: 'api-key' } }
+                config: {
+                  group: 'standard-personal',
+                  access: { type: 'api-key', apiKey: 'personal-provider-key' },
+                  api: { baseUrl: 'http://127.0.0.1:8317' },
+                  personalModelIds: [],
+                  modelOrder: ['gpt-5.6-luna']
+                }
               }
             ]
           },
@@ -113,7 +119,7 @@ describe('upstream-written ZCode v2 stores', () => {
               {
                 providerId: 'account:bigmodel-individual-coding-plan',
                 modelId: 'GLM-5.3',
-                config: { properties: { reasoningLevel: 'high' } }
+                config: { properties: { contextWindow: 131_072 } }
               }
             ],
             manualProviderModelRules: []
