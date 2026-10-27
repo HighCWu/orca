@@ -42,11 +42,80 @@ const providerRuleSchema = z
 const oauthOnlyShellSchema = z
   .object({ schemaVersion: z.literal(1), config: z.object({}).strict() })
   .strict()
+const nullableModelIdsSchema = z.array(z.string().min(1)).nullable().optional()
 const oauthCompatibleProviderConfigSchema = z
-  .object({ access: z.object({ type: z.literal('api-key') }).strict() })
+  .object({
+    group: z.literal('standard-personal').nullable().optional(),
+    logo: z
+      .object({ type: z.literal('builtin'), key: z.string().min(1) })
+      .strict()
+      .nullable()
+      .optional(),
+    access: z
+      .object({
+        type: z.enum(['api-key', 'zhipu-coding-plan-api-key']),
+        apiKey: z.string().nullable().optional(),
+        apiKeyManagementUrl: z.string().url().nullable().optional()
+      })
+      .strict()
+      .nullable()
+      .optional(),
+    api: z
+      .object({
+        type: z
+          .enum(['anthropic-messages', 'openai-chat-completions', 'openai-responses'])
+          .optional(),
+        baseUrl: z.string().nullable().optional(),
+        headers: z.record(z.string(), z.string()).nullable().optional()
+      })
+      .strict()
+      .nullable()
+      .optional(),
+    personalModelIds: nullableModelIdsSchema,
+    modelOrder: nullableModelIdsSchema,
+    visibility: z.enum(['visible', 'hidden']).nullable().optional()
+  })
+  .strict()
+const modelInputFormatSchema = z
+  .object({
+    supportsText: z.boolean().optional(),
+    supportsImage: z.boolean().optional(),
+    supportsVideo: z.boolean().optional(),
+    supportsAudio: z.boolean().optional(),
+    supportsPdf: z.boolean().optional()
+  })
+  .strict()
+const modelPropertiesSchema = z
+  .object({
+    requiresMfjsToolSchema: z.boolean().optional(),
+    contextWindow: z.number().int().positive().optional(),
+    inputFormat: modelInputFormatSchema.nullable().optional(),
+    outputFormat: z.object({ supportsText: z.boolean().optional() }).strict().nullable().optional(),
+    supportsToolCall: z.boolean().optional(),
+    supportsJsonSchemaOutput: z.boolean().optional(),
+    supportsNativeWebSearch: z.boolean().optional(),
+    supportsMidConversationSystem: z.boolean().optional()
+  })
+  .strict()
+const enumOptionSpecSchema = z
+  .object({ values: z.array(z.string().min(1)).optional(), map: z.string().min(1).optional() })
+  .strict()
+const limitOptionSpecSchema = z
+  .object({ max: z.number().int().positive().optional(), map: z.string().min(1).optional() })
   .strict()
 const oauthCompatibleModelConfigSchema = z
-  .object({ properties: z.object({ reasoningLevel: z.string().min(1) }).strict() })
+  .object({
+    enabled: z.boolean().optional(),
+    properties: modelPropertiesSchema.nullable().optional(),
+    optionSpecs: z
+      .object({
+        reasoningLevel: enumOptionSpecSchema.nullable().optional(),
+        maxOutputTokens: limitOptionSpecSchema.nullable().optional()
+      })
+      .strict()
+      .nullable()
+      .optional()
+  })
   .strict()
 
 const selectionSchema = z
@@ -95,6 +164,11 @@ export function readSupportedZcodeV2Selection(input: unknown) {
   const providerIds = new Set(providerRules.map((rule) => rule.providerId))
   if (providerIds.size !== providerRules.length) {
     throw new Error('Invalid personal provider rules')
+  }
+  if (
+    providerRules.some((rule) => rule.providerId.startsWith('account:') && 'access' in rule.config)
+  ) {
+    return { status: 'unsupported' as const }
   }
 
   const selectedProviderSupported = providerRules.every(
