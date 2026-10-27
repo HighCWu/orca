@@ -336,10 +336,8 @@ describe('structured agent-session create intent', () => {
     runtime.setAccountServices({
       claudeAccounts: { getRuntimeConfigDir } as never,
       codexAccounts: {} as never,
-      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the comma-only edit re-surfaces this grandfathered stub; the create-intent path never reads it.
-      rateLimits: {} as never,
-      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: this test's create-intent path never reaches the coordinator, matching the neighboring stubs.
-      zcodeResetCredits: {} as never
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the create-intent path never reads this grandfathered stub.
+      rateLimits: {} as never
     })
     vi.spyOn(runtime, 'getStructuredAgentSessionCreateSupport').mockResolvedValue({
       supported: true
