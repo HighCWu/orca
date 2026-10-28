@@ -9,8 +9,7 @@ import {
   getPreflightWslTarget,
   type PreflightRuntimeContext
 } from '../ipc/preflight-runtime-target'
-import { readZCodeInteractiveCapability } from '../zcode/interactive-capability'
-import { resolveZcodeCliInvocation } from '../zcode/zcode-cli-invocation'
+import { readZcodeTerminalLaunchAdmission } from '../zcode/terminal-launch-admission'
 import { detectAgentCommandsOnHost } from './agent-command-detection'
 
 export async function detectInstalledAgents(context?: PreflightRuntimeContext): Promise<string[]> {
@@ -25,10 +24,10 @@ export async function detectInstalledAgents(context?: PreflightRuntimeContext): 
   if (wslTarget || !detected.includes('zcode')) {
     return detected
   }
-  const capability = await readZCodeInteractiveCapability(
-    resolveZcodeCliInvocation({ pathEnv: process.env.PATH ?? process.env.Path })
-  )
-  return capability === 'missing-tui' ? detected.filter((agent) => agent !== 'zcode') : detected
+  const admission = await readZcodeTerminalLaunchAdmission({
+    pathEnv: process.env.PATH ?? process.env.Path
+  })
+  return admission.status === 'available' ? detected : detected.filter((agent) => agent !== 'zcode')
 }
 
 export async function detectInstalledAgentsWithShellPathHydration(
