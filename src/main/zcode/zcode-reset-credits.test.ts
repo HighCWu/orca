@@ -8,9 +8,18 @@ import { join } from 'node:path'
 import {
   fetchZcodeResetCredits,
   readZcodeResetCredentialFacts,
-  redeemZcodeResetCredit
+  redeemZcodeResetCredit,
+  requestZcodeResetOpportunity
 } from './zcode-reset-credits'
+import { _resetZcodeResetOriginCacheForTests } from './zcode-reset-origin-selection'
 import type { ZcodeCredentialHost } from './zcode-v2-plan-credentials'
+
+const standaloneHost: ZcodeCredentialHost = {
+  home: '/test-home',
+  platform: 'linux',
+  username: 'test-user',
+  env: {}
+}
 
 const accountTokens = (overrides: Record<string, string> = {}): Record<string, string> => ({
   zcodejwttoken: 'jwt-1',
@@ -46,13 +55,23 @@ const install = (respond: () => Response): void => {
 
 afterEach(() => {
   globalThis.fetch = fetchImpl
+  _resetZcodeResetOriginCacheForTests()
 })
 
 describe('zcode reset credits', () => {
-  it('maps the five-hour inventory and reads JWTs from the store', async () => {
+  it('maps the five-hour inventory from the ZCode business API', async () => {
     const path = store(accountTokens())
-    install(() => json(okStatus))
-    const credits = await fetchZcodeResetCredits({ credentialStorePath: path })
+    let requestedUrl = ''
+    fetchImpl = globalThis.fetch
+    globalThis.fetch = (input) => {
+      requestedUrl = String(input)
+      return Promise.resolve(json(okStatus))
+    }
+    const credits = await fetchZcodeResetCredits({
+      credentialStorePath: path,
+      host: standaloneHost
+    })
+    expect(requestedUrl).toBe('https://open.bigmodel.cn/api/v1/coding-plan/reset/status')
     expect(credits).toEqual({
       availableCount: 2,
       nextExpiresAt: 1_500_000,
@@ -63,6 +82,57 @@ describe('zcode reset credits', () => {
       weekAvailableCount: 1,
       weekNextExpiresAt: 9_000_000
     })
+  })
+
+  it('falls back from the standalone plan origin to the Desktop business origin', async () => {
+    const path = store(accountTokens())
+    const requestedUrls: string[] = []
+    fetchImpl = globalThis.fetch
+    globalThis.fetch = (input) => {
+      requestedUrls.push(String(input))
+      return Promise.resolve(requestedUrls.length === 1 ? json({ code: 404 }, 404) : json(okStatus))
+    }
+
+    await expect(
+      fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
+    ).resolves.toMatchObject({
+      availableCount: 2
+    })
+    expect(requestedUrls).toEqual([
+      'https://open.bigmodel.cn/api/v1/coding-plan/reset/status',
+      'https://zcode.z.ai/api/v1/coding-plan/reset/status'
+    ])
+
+    globalThis.fetch = (input) => {
+      requestedUrls.push(String(input))
+      return Promise.resolve(json({ code: 200, data: { granted: true } }))
+    }
+    await requestZcodeResetOpportunity({
+      credentialStorePath: path,
+      credentialHost: standaloneHost,
+      idempotencyKey: 'desktop-fallback-key'
+    })
+    expect(requestedUrls.at(-1)).toBe('https://zcode.z.ai/api/v1/coding-plan/reset/opportunity')
+  })
+
+  it('honors the official ZCode endpoint override used by Desktop test environments', async () => {
+    const path = store(accountTokens())
+    const host: ZcodeCredentialHost = {
+      home: '/test-home',
+      platform: 'linux',
+      username: 'test-user',
+      env: { ZCODE_BASE_URL: 'http://127.0.0.1:4319/nested/path' }
+    }
+    let requestedUrl = ''
+    fetchImpl = globalThis.fetch
+    globalThis.fetch = (input) => {
+      requestedUrl = String(input)
+      return Promise.resolve(json(okStatus))
+    }
+
+    await fetchZcodeResetCredits({ credentialStorePath: path, host })
+
+    expect(requestedUrl).toBe('http://127.0.0.1:4319/api/v1/coding-plan/reset/status')
   })
 
   it('keeps the week pool visible when the five-hour pool is empty', async () => {
@@ -79,7 +149,9 @@ describe('zcode reset credits', () => {
         }
       })
     )
-    expect(await fetchZcodeResetCredits({ credentialStorePath: path })).toMatchObject({
+    expect(
+      await fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
+    ).toMatchObject({
       availableCount: 0,
       weekAvailableCount: 1,
       weekNextExpiresAt: 9_000_000
@@ -92,7 +164,9 @@ describe('zcode reset credits', () => {
     ).toBeNull()
     const path = store(accountTokens())
     install(() => json({ code: 500 }, 500))
-    expect(await fetchZcodeResetCredits({ credentialStorePath: path })).toBeNull()
+    expect(
+      await fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
+    ).toBeNull()
   })
 
   it('keeps the account identity stable across JWT refreshes', () => {
@@ -135,7 +209,9 @@ describe('zcode reset credits', () => {
       return Promise.resolve(json(okStatus))
     }
 
-    await expect(fetchZcodeResetCredits({ credentialStorePath: path })).resolves.toBeNull()
+    await expect(
+      fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
+    ).resolves.toBeNull()
     expect(called).toBe(false)
   })
 
@@ -201,21 +277,71 @@ describe('zcode reset credits', () => {
     })
   })
 
+  it('requests opportunities only from the origin verified by status', async () => {
+    const path = store(accountTokens())
+    const requestedUrls: string[] = []
+    globalThis.fetch = (input) => {
+      const url = String(input)
+      requestedUrls.push(url)
+      return Promise.resolve(
+        url.endsWith('/status') ? json(okStatus) : json({ code: 200, data: { granted: true } })
+      )
+    }
+
+    await fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
+    await expect(
+      requestZcodeResetOpportunity({
+        credentialStorePath: path,
+        credentialHost: standaloneHost,
+        idempotencyKey: 'opportunity-key'
+      })
+    ).resolves.toEqual({ granted: true })
+    expect(requestedUrls.at(-1)).toBe(
+      'https://open.bigmodel.cn/api/v1/coding-plan/reset/opportunity'
+    )
+  })
+
+  it('refuses an opportunity POST before a reset origin is verified', async () => {
+    const path = store(accountTokens())
+    let called = false
+    globalThis.fetch = () => {
+      called = true
+      return Promise.resolve(json({ code: 200, data: { granted: true } }))
+    }
+
+    await expect(
+      requestZcodeResetOpportunity({
+        credentialStorePath: path,
+        credentialHost: standaloneHost,
+        idempotencyKey: 'unverified-key'
+      })
+    ).rejects.toThrow('endpoint is not verified')
+    expect(called).toBe(false)
+  })
+
   it('spends a card with the idempotency key and body the server expects', async () => {
     const path = store(accountTokens())
+    let requestedUrl = ''
     let seenBody: unknown
     const bodySpy = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      void input
+      requestedUrl = String(input)
       seenBody = init?.body ? JSON.parse(String(init.body)) : undefined
-      return Promise.resolve(json({ code: 200, data: { used: true } }))
+      return Promise.resolve(
+        requestedUrl.endsWith('/status')
+          ? json(okStatus)
+          : json({ code: 200, data: { used: true } })
+      )
     }
     globalThis.fetch = bodySpy
+    await fetchZcodeResetCredits({ credentialStorePath: path, host: standaloneHost })
     const used = await redeemZcodeResetCredit({
       credentialStorePath: path,
+      credentialHost: standaloneHost,
       resetType: 'FIVE_HOUR',
       idempotencyKey: 'smoke-key-1'
     })
     expect(used).toEqual({ used: true })
+    expect(requestedUrl).toBe('https://open.bigmodel.cn/api/v1/coding-plan/reset/use')
     expect(seenBody).toEqual({ idempotency_key: 'smoke-key-1', reset_type: 'FIVE_HOUR' })
   })
 })
