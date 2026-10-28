@@ -12,13 +12,12 @@ import { existsSync as defaultExistsSync, realpathSync as defaultRealpathSync } 
 import { homedir } from 'node:os'
 import { posix, win32 } from 'node:path'
 
-const UNIX_WINDOWS_BUNDLE_SEGMENTS = ['resources', 'glm', 'zcode.cjs']
-const MACOS_BUNDLE_SEGMENTS = ['Resources', 'glm', 'zcode.cjs']
-
 export type ZcodeOfficialRuntime = {
   /** The official desktop executable, reused as the Node runtime via ELECTRON_RUN_AS_NODE. */
   electron: string
   bundle: string
+  /** The Desktop package keeps this outside the CLI bundle's standalone lookup layout. */
+  builtinProviderConfig?: string
 }
 
 export type ZcodeOfficialRuntimeDeps = {
@@ -59,11 +58,25 @@ function runtimeBeside(
   platform: NodeJS.Platform
 ): ZcodeOfficialRuntime | null {
   const paths = platformPath(platform)
-  const bundle =
+  const resourcesRoot =
     platform === 'darwin'
-      ? paths.join(paths.dirname(paths.dirname(binary)), ...MACOS_BUNDLE_SEGMENTS)
-      : paths.join(paths.dirname(binary), ...UNIX_WINDOWS_BUNDLE_SEGMENTS)
-  return existsSync(bundle) ? { electron: binary, bundle } : null
+      ? paths.join(paths.dirname(paths.dirname(binary)), 'Resources')
+      : paths.join(paths.dirname(binary), 'resources')
+  const bundle = paths.join(resourcesRoot, 'glm', 'zcode.cjs')
+  if (!existsSync(bundle)) {
+    return null
+  }
+  const builtinProviderConfig = paths.join(
+    resourcesRoot,
+    'config',
+    'provider',
+    'zcode-builtin.json'
+  )
+  return {
+    electron: binary,
+    bundle,
+    ...(existsSync(builtinProviderConfig) ? { builtinProviderConfig } : {})
+  }
 }
 
 /** The official runtime a `command` names, when that command is a desktop install's executable;
