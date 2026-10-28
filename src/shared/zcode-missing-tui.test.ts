@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { isZCodeMissingTuiOutput } from './zcode-missing-tui'
+import { isZCodeInteractiveTuiOutput, isZCodeMissingTuiOutput } from './zcode-missing-tui'
 
 const FIXTURE = join(__dirname, '..', 'main', 'runtime', '__fixtures__', 'zcode-missing-tui.txt')
 
@@ -38,5 +38,17 @@ describe('isZCodeMissingTuiOutput', () => {
   it('does not match prose that merely mentions the package', () => {
     expect(isZCodeMissingTuiOutput('install @zcode/tui to get the terminal UI')).toBe(false)
     expect(isZCodeMissingTuiOutput('TUI is unavailable while the terminal initializes')).toBe(false)
+  })
+})
+
+describe('isZCodeInteractiveTuiOutput', () => {
+  it('matches the official English and Chinese non-TTY diagnostics', () => {
+    expect(isZCodeInteractiveTuiOutput('TUI requires an interactive terminal.')).toBe(true)
+    expect(isZCodeInteractiveTuiOutput('TUI 需要交互式终端。')).toBe(true)
+  })
+
+  it('does not infer TUI support from generic terminal failures', () => {
+    expect(isZCodeInteractiveTuiOutput('not a tty')).toBe(false)
+    expect(isZCodeInteractiveTuiOutput('interactive terminal unavailable')).toBe(false)
   })
 })

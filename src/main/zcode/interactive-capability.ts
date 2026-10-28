@@ -1,5 +1,6 @@
 import { runProcess } from '@orca/process-host'
 import {
+  isZCodeInteractiveTuiOutput,
   isZCodeMissingTuiOutput,
   type ZCodeInteractiveCapability
 } from '../../shared/zcode-missing-tui'
@@ -26,10 +27,13 @@ async function probe(invocation: ZcodeCliInvocation): Promise<ZCodeInteractiveCa
       input: '',
       timeoutMs: PROBE_TIMEOUT_MS
     })
-    if (isZCodeMissingTuiOutput(`${result.stderr}\n${result.stdout}`)) {
+    const output = `${result.stderr}\n${result.stdout}`
+    if (isZCodeMissingTuiOutput(output)) {
       return 'missing-tui'
     }
-    return result.timedOut || result.code === 0 ? 'interactive' : 'unknown'
+    return result.timedOut || result.code === 0 || isZCodeInteractiveTuiOutput(output)
+      ? 'interactive'
+      : 'unknown'
   } catch {
     return 'unknown'
   }
