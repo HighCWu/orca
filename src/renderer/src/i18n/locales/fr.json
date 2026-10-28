@@ -4221,7 +4221,18 @@
             "codexSignInError": "Échec de la connexion à Codex. Veuillez réessayer.",
             "cursorUsageMenu": "Utilisation Cursor",
             "hiddenUsageProviders": "Aussi : {{value0}}",
-            "zcodeUsageMenu": "Utilisation du code Z"
+            "zcodeUsageMenu": "Utilisation de ZCode",
+            "zcode": {
+              "oneFiveHourCard": "1 réinitialisation de la limite de cinq heures disponible",
+              "fiveHourCards": "{{value0}} réinitialisations de la limite de cinq heures disponibles",
+              "oneWeekCard": "1 réinitialisation hebdomadaire de la limite disponible",
+              "weekCards": "{{value0}} réinitialisations hebdomadaires de la limite disponibles",
+              "weekCardTitle": "Utiliser une réinitialisation hebdomadaire de la limite ?",
+              "weekCardBody": "Cela utilise une réinitialisation hebdomadaire de la limite GLM Coding Plan pour ce compte et réinitialise immédiatement sa fenêtre d’utilisation hebdomadaire.",
+              "resetCreditTitle": "Utiliser une réinitialisation de la limite ?",
+              "resetCreditBody": "Cela utilise une réinitialisation de la limite GLM Coding Plan pour ce compte et réinitialise immédiatement sa fenêtre d’utilisation de cinq heures.",
+              "useWeekCard": "Utiliser la réinitialisation hebdomadaire"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Connecter un compte",

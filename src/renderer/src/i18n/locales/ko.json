@@ -4069,7 +4069,18 @@
             "codexSignInError": "Codex 로그인에 실패했습니다. 다시 시도해 주세요.",
             "cursorUsageMenu": "Cursor 사용량",
             "hiddenUsageProviders": "그 외: {{value0}}",
-            "zcodeUsageMenu": "ZCode 사용"
+            "zcodeUsageMenu": "ZCode 사용량",
+            "zcode": {
+              "oneFiveHourCard": "5시간 속도 제한 재설정 1회 사용 가능",
+              "fiveHourCards": "5시간 속도 제한 재설정 {{value0}}회 사용 가능",
+              "oneWeekCard": "주간 속도 제한 재설정 1회 사용 가능",
+              "weekCards": "주간 속도 제한 재설정 {{value0}}회 사용 가능",
+              "weekCardTitle": "주간 속도 제한 재설정을 사용하시겠습니까?",
+              "weekCardBody": "이 계정의 GLM Coding Plan 주간 속도 제한 재설정 1회를 사용하고 주간 사용량 기간을 즉시 재설정합니다.",
+              "resetCreditTitle": "속도 제한 재설정을 사용하시겠습니까?",
+              "resetCreditBody": "이 계정의 GLM Coding Plan 속도 제한 재설정 1회를 사용하고 5시간 사용량 기간을 즉시 재설정합니다.",
+              "useWeekCard": "주간 재설정 사용"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "계정 연결",

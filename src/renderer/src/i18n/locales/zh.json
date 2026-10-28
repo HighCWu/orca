@@ -4069,7 +4069,18 @@
             "codexSignInError": "Codex 登录失败，请重试。",
             "cursorUsageMenu": "Cursor 用量",
             "hiddenUsageProviders": "另有：{{value0}}",
-            "zcodeUsageMenu": "Z代码使用"
+            "zcodeUsageMenu": "ZCode 使用情况",
+            "zcode": {
+              "oneFiveHourCard": "1 个五小时速率限制重置可用",
+              "fiveHourCards": "{{value0}} 个五小时速率限制重置可用",
+              "oneWeekCard": "1 个每周速率限制重置可用",
+              "weekCards": "{{value0}} 个每周速率限制重置可用",
+              "weekCardTitle": "使用每周速率限制重置？",
+              "weekCardBody": "这将消耗此账户的一个 GLM Coding Plan 每周速率限制重置，并立即重置其每周用量窗口。",
+              "resetCreditTitle": "使用速率限制重置？",
+              "resetCreditBody": "这将消耗此账户的一个 GLM Coding Plan 速率限制重置，并立即重置其五小时用量窗口。",
+              "useWeekCard": "使用每周重置"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "连接账户",

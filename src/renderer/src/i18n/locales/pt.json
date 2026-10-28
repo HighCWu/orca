@@ -2314,7 +2314,18 @@
             "a95969101f": "{{value0}} créditos",
             "cursorUsageMenu": "Uso do Cursor",
             "hiddenUsageProviders": "Também: {{value0}}",
-            "zcodeUsageMenu": "Uso do ZCode"
+            "zcodeUsageMenu": "Uso do ZCode",
+            "zcode": {
+              "oneFiveHourCard": "1 redefinição do limite de cinco horas disponível",
+              "fiveHourCards": "{{value0}} redefinições do limite de cinco horas disponíveis",
+              "oneWeekCard": "1 redefinição semanal do limite disponível",
+              "weekCards": "{{value0}} redefinições semanais do limite disponíveis",
+              "weekCardTitle": "Usar uma redefinição semanal do limite?",
+              "weekCardBody": "Isso usa uma redefinição semanal do limite do GLM Coding Plan nesta conta e redefine imediatamente sua janela de uso semanal.",
+              "resetCreditTitle": "Usar uma redefinição do limite?",
+              "resetCreditBody": "Isso usa uma redefinição do limite do GLM Coding Plan nesta conta e redefine imediatamente sua janela de uso de cinco horas.",
+              "useWeekCard": "Usar redefinição semanal"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Conectar uma conta",
