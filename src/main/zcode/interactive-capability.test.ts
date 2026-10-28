@@ -67,6 +67,18 @@ describe('readZCodeInteractiveCapability', () => {
     await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('missing-tui')
   })
 
+  it.each(['TUI requires an interactive terminal.', 'TUI 需要交互式终端。'])(
+    'recognizes an official non-TTY diagnostic as interactive: %s',
+    async (stderr) => {
+      mocks.runProcess.mockResolvedValue({ code: 1, stdout: '', stderr, timedOut: false })
+
+      await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('interactive')
+      await readZCodeInteractiveCapability(desktopInvocation)
+
+      expect(mocks.runProcess).toHaveBeenCalledTimes(1)
+    }
+  )
+
   it('does not classify an unrecognized non-zero exit as interactive', async () => {
     mocks.runProcess.mockResolvedValue({
       code: 1,
