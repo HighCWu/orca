@@ -10,7 +10,7 @@ import { fetchCodexRateLimits } from './codex-fetcher'
 import type * as ZcodeUsageFetcherModule from './zcode-usage-fetcher'
 import { fetchZcodeRateLimits } from './zcode-usage-fetcher'
 import { hasZcodePlanApiKey } from '../zcode/zcode-plan-api-key-store'
-import { requestZcodeResetOpportunity } from '../zcode/zcode-reset-credits'
+import { readZcodeResetAccountId, requestZcodeResetOpportunity } from '../zcode/zcode-reset-credits'
 import {
   deferred,
   okProvider,
@@ -119,18 +119,37 @@ describe('RateLimitService zcode plan credentials', () => {
     expect(requestZcodeResetOpportunity).not.toHaveBeenCalled()
   })
 
-  it('passes no plan credential while no key is saved and still fetches via the CLI config', async () => {
+  it('re-reads CLI reset inventory after an opportunity is granted', async () => {
     const service = new RateLimitService()
     service.setZcodePlanConfigResolver(() => ({ site: 'zai', apiKey: '' }))
-    vi.mocked(fetchZcodeRateLimits).mockResolvedValueOnce(okProvider('zcode', 12, Date.now()))
+    vi.mocked(readZcodeResetAccountId).mockReturnValue('account-a')
+    vi.mocked(requestZcodeResetOpportunity).mockResolvedValueOnce({ granted: true })
+    vi.mocked(fetchZcodeRateLimits)
+      .mockImplementationOnce(async () => {
+        expect(requestZcodeResetOpportunity).not.toHaveBeenCalled()
+        return okProvider('zcode', 12, Date.now())
+      })
+      .mockImplementationOnce(async () => {
+        expect(requestZcodeResetOpportunity).toHaveBeenCalledTimes(1)
+        return {
+          ...okProvider('zcode', 12, Date.now()),
+          rateLimitResetCredits: {
+            availableCount: 1,
+            nextExpiresAt: Date.now() + 60_000,
+            credits: []
+          }
+        }
+      })
 
     await service.refresh()
 
-    expect(fetchZcodeRateLimits).toHaveBeenCalledWith({
+    expect(fetchZcodeRateLimits).toHaveBeenCalledTimes(2)
+    expect(fetchZcodeRateLimits).toHaveBeenLastCalledWith({
       signal: expect.any(AbortSignal),
       planCredential: null
     })
     expect(service.getState().zcode?.session?.usedPercent).toBe(12)
+    expect(service.getState().zcode?.rateLimitResetCredits?.availableCount).toBe(1)
   })
 
   it('surfaces a resolver failure as a zcode-only error without fetching', async () => {

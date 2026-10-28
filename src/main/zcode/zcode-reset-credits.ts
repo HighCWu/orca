@@ -10,11 +10,17 @@ import { z } from 'zod'
 import { readNodeFileSyncWithinLimit } from '../../shared/node-bounded-file-reader'
 import { cancelUnreadResponseBody } from '../lib/unread-response-body'
 import { abortSignalWithTimeout } from '../lib/abort-signal-with-timeout'
+import { readZcodeResetEnvelope } from './zcode-reset-response'
 import {
   decryptZcodeV2CredentialValue,
   localZcodeCredentialHost,
   type ZcodeCredentialHost
 } from './zcode-v2-plan-credentials'
+import {
+  rememberZcodeResetOrigin,
+  requireZcodeResetOrigin,
+  zcodeResetOriginCandidates
+} from './zcode-reset-origin-selection'
 
 const RESET_BASE_PATH = '/api/v1/coding-plan/reset'
 const MAX_CREDENTIAL_STORE_BYTES = 4 * 1024 * 1024
@@ -29,11 +35,6 @@ export type ZcodeResetCredits = {
   weekNextExpiresAt?: number | null
 }
 const REQUEST_TIMEOUT_MS = 15_000
-
-const resetEnvelopeSchema = z.object({
-  code: z.number(),
-  data: z.unknown().optional()
-})
 
 const resetStatusDataSchema = z.object({
   available_five_hour_resets: z
@@ -75,8 +76,8 @@ function resetTimestamp(value: number): number {
 export type ZcodeResetCredentialFacts = {
   /** Stable, irreversible identity of the exact credential pair used by the reset API. */
   accountId: string
-  /** The business origin the reset API answers on, e.g. https://open.bigmodel.cn. */
-  origin: string
+  /** Candidate origins for the reset API, ordered from installation-specific to current Desktop. */
+  origins: readonly string[]
   /** The zcode business JWT (`zcodejwttoken`), sent as `Authorization: Bearer <jwt>`. */
   zcodeJwt: string
   /** The active family's MaaS JWT, sent raw as `X-Bigmodel-Authorization`. */
@@ -137,11 +138,11 @@ export function readZcodeResetCredentialFacts(
     if (!zcodeJwt || !codingPlanJwt || !account.success) {
       return null
     }
-    const origin = family === 'zai' ? 'https://api.z.ai' : 'https://open.bigmodel.cn'
+    const origins = zcodeResetOriginCandidates(family, host.env)
     const accountId = createHash('sha256')
       .update(JSON.stringify([family, account.data.id]))
       .digest('base64url')
-    return { accountId, origin, zcodeJwt, codingPlanJwt }
+    return { accountId, origins, zcodeJwt, codingPlanJwt }
   } catch {
     return null
   }
@@ -163,26 +164,6 @@ function resetHeaders(facts: ZcodeResetCredentialFacts): Record<string, string> 
   }
 }
 
-async function readResetEnvelope(
-  response: Response
-): Promise<{ code: number; data: unknown } | null> {
-  if (!response.ok) {
-    await cancelUnreadResponseBody(response)
-    return null
-  }
-  let payload: unknown
-  try {
-    payload = await response.json()
-  } catch {
-    return null
-  }
-  const envelope = resetEnvelopeSchema.safeParse(payload)
-  if (!envelope.success || (envelope.data.code !== 200 && envelope.data.code !== 0)) {
-    return null
-  }
-  return { code: envelope.data.code, data: envelope.data.data }
-}
-
 /** The available rate-limit reset inventory: five-hour resets with their expiries. Null when the
  *  credential store or the endpoint cannot answer — presence-only, never a hard failure. */
 export async function fetchZcodeResetCredits(options: {
@@ -195,27 +176,36 @@ export async function fetchZcodeResetCredits(options: {
   if (!facts || (options.accountId && options.accountId !== facts.accountId)) {
     return null
   }
-  let response: Response
-  try {
-    response = await fetch(`${facts.origin}${RESET_BASE_PATH}/status`, {
-      headers: resetHeaders(facts),
-      signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
-    })
-  } catch {
+  let data: z.infer<typeof resetStatusDataSchema> | null = null
+  for (const origin of facts.origins) {
+    let response: Response
+    try {
+      response = await fetch(`${origin}${RESET_BASE_PATH}/status`, {
+        headers: resetHeaders(facts),
+        signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
+      })
+    } catch {
+      continue
+    }
+    const envelope = await readZcodeResetEnvelope(response)
+    if (!envelope) {
+      continue
+    }
+    const parsed = resetStatusDataSchema.safeParse(envelope.data)
+    if (!parsed.success) {
+      continue
+    }
+    rememberZcodeResetOrigin(facts.accountId, origin)
+    data = parsed.data
+    break
+  }
+  if (!data) {
     return null
   }
-  const envelope = await readResetEnvelope(response)
-  if (!envelope) {
-    return null
-  }
-  const data = resetStatusDataSchema.safeParse(envelope.data)
-  if (!data.success) {
-    return null
-  }
-  const cards = data.data.available_five_hour_resets
+  const cards = data.available_five_hour_resets
     .map((card) => ({ ...card, expire_at: resetTimestamp(card.expire_at) }))
     .sort((a, b) => a.expire_at - b.expire_at)
-  const weekCards = data.data.available_week_resets
+  const weekCards = data.available_week_resets
     .map((card) => ({ ...card, expire_at: resetTimestamp(card.expire_at) }))
     .sort((a, b) => a.expire_at - b.expire_at)
   if (cards.length === 0 && weekCards.length === 0) {
@@ -241,9 +231,10 @@ export async function requestZcodeResetOpportunity(options: {
   credentialStorePath: string
   idempotencyKey: string
   accountId?: string
+  credentialHost?: ZcodeCredentialHost
   signal?: AbortSignal
 }): Promise<ZcodeResetOpportunity> {
-  const facts = readZcodeResetCredentialFacts(options.credentialStorePath)
+  const facts = readZcodeResetCredentialFacts(options.credentialStorePath, options.credentialHost)
   if (!facts) {
     throw new Error('zcode rate-limit reset credentials are not configured')
   }
@@ -256,12 +247,15 @@ export async function requestZcodeResetOpportunity(options: {
   }
   let response: Response
   try {
-    response = await fetch(`${facts.origin}${RESET_BASE_PATH}/opportunity`, {
-      method: 'POST',
-      headers: resetHeaders(facts),
-      body: JSON.stringify({ idempotency_key: idempotencyKey }),
-      signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
-    })
+    response = await fetch(
+      `${requireZcodeResetOrigin(facts.accountId)}${RESET_BASE_PATH}/opportunity`,
+      {
+        method: 'POST',
+        headers: resetHeaders(facts),
+        body: JSON.stringify({ idempotency_key: idempotencyKey }),
+        signal: abortSignalWithTimeout(options.signal, REQUEST_TIMEOUT_MS)
+      }
+    )
   } catch (error) {
     throw new Error(
       `zcode rate-limit reset opportunity failed: ${error instanceof Error ? error.message : String(error)}`
@@ -271,7 +265,7 @@ export async function requestZcodeResetOpportunity(options: {
     await cancelUnreadResponseBody(response)
     throw new ZcodeResetOpportunityThrottledError(null)
   }
-  const envelope = await readResetEnvelope(response)
+  const envelope = await readZcodeResetEnvelope(response)
   if (!envelope) {
     throw new Error(`zcode rate-limit reset opportunity failed (${response.status})`)
   }
@@ -308,7 +302,7 @@ export async function redeemZcodeResetCredit(options: {
   }
   let response: Response
   try {
-    response = await fetch(`${facts.origin}${RESET_BASE_PATH}/use`, {
+    response = await fetch(`${requireZcodeResetOrigin(facts.accountId)}${RESET_BASE_PATH}/use`, {
       method: 'POST',
       headers: resetHeaders(facts),
       body: JSON.stringify({ idempotency_key: idempotencyKey, reset_type: options.resetType }),
@@ -319,7 +313,7 @@ export async function redeemZcodeResetCredit(options: {
       `zcode rate-limit reset use failed: ${error instanceof Error ? error.message : String(error)}`
     )
   }
-  const envelope = await readResetEnvelope(response)
+  const envelope = await readZcodeResetEnvelope(response)
   if (!envelope) {
     throw new Error(`zcode rate-limit reset use failed (${response.status})`)
   }
