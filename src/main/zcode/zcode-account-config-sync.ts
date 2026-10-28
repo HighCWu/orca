@@ -82,10 +82,21 @@ export function findZcodeBuiltinProviderConfigFile(dataBaseDir: string): string 
   const cacheRoot = join(dataBaseDir, '.zcode', 'v2', 'runtime', 'provider')
   let newest: { path: string; mtimeMs: number } | null = null
   try {
-    for (const platform of readdirSync(cacheRoot)) {
-      for (const version of readdirSync(join(cacheRoot, platform))) {
-        for (const endpoint of readdirSync(join(cacheRoot, platform, version))) {
-          const candidate = join(cacheRoot, platform, version, endpoint, 'zcode-builtin.json')
+    for (const platform of readdirSync(cacheRoot, { withFileTypes: true })) {
+      if (!platform.isDirectory()) {
+        continue
+      }
+      const platformRoot = join(cacheRoot, platform.name)
+      for (const version of readdirSync(platformRoot, { withFileTypes: true })) {
+        if (!version.isDirectory()) {
+          continue
+        }
+        const versionRoot = join(platformRoot, version.name)
+        for (const endpoint of readdirSync(versionRoot, { withFileTypes: true })) {
+          if (!endpoint.isDirectory()) {
+            continue
+          }
+          const candidate = join(versionRoot, endpoint.name, 'zcode-builtin.json')
           try {
             const mtimeMs = statSync(candidate).mtimeMs
             if (!newest || mtimeMs > newest.mtimeMs) {
@@ -170,8 +181,7 @@ export function buildZcodeAccountConfigPush(args: {
     const bareId = rule.providerId.slice('account:'.length)
     const entitled = [...credentialKeys].some(
       (key) =>
-        key.includes(`coding-plan:account:${bareId}:`) ||
-        key.includes(`coding-plan:account:${rule.providerId}:`)
+        key.includes(`coding-plan:${bareId}:`) || key.includes(`coding-plan:${rule.providerId}:`)
     )
     providers[rule.providerId] = {
       builtinModelIds: Array.isArray(rule.config.builtinModelIds)
@@ -204,9 +214,13 @@ export function resolveZcodeAccountConfigPaths(args: {
   const launchEnv = args.launchEnv ?? {}
   const dataBaseDir =
     launchEnv.ZCODE_DATA_BASE_DIR ?? launchEnv.HOME ?? launchEnv.USERPROFILE ?? homedir()
+  const explicitBuiltInPath = launchEnv.ZCODE_BUILTIN_PROVIDER_CONFIG_FILE?.trim()
+  const bundledBuiltInPath = launchEnv.ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE?.trim()
+  const activeBuiltInPath = findZcodeBuiltinProviderConfigFile(dataBaseDir)
   const builtInPath =
-    launchEnv.ZCODE_BUILTIN_PROVIDER_CONFIG_FILE?.trim() ||
-    findZcodeBuiltinProviderConfigFile(dataBaseDir)
+    explicitBuiltInPath && explicitBuiltInPath !== bundledBuiltInPath
+      ? explicitBuiltInPath
+      : activeBuiltInPath || explicitBuiltInPath
   return {
     builtInPath: builtInPath || null,
     credentialsPath: join(dataBaseDir, '.zcode', 'v2', 'credentials.json'),

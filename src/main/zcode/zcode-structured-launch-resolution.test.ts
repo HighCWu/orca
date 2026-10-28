@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { resolveZcodeLaunchCommand } from './zcode-structured-launch-resolution'
 
-const desktopFiles = new Set(['/opt/ZCode/zcode', '/opt/ZCode/resources/glm/zcode.cjs'])
+const desktopFiles = new Set([
+  '/opt/ZCode/zcode',
+  '/opt/ZCode/resources/glm/zcode.cjs',
+  '/opt/ZCode/resources/config/provider/zcode-builtin.json'
+])
 const officialRuntime = {
   platform: 'linux' as const,
   existsSync: (path: string): boolean => desktopFiles.has(path),
@@ -14,14 +18,30 @@ describe('resolveZcodeLaunchCommand', () => {
       resolveZcodeLaunchCommand({}, { resolveCommand: () => 'zcode', officialRuntime })
     ).toEqual({
       command: '/opt/ZCode/zcode',
-      args: [
-        '/opt/ZCode/resources/glm/zcode.cjs',
-        'app-server',
-        '--stdio',
-        '--surface',
-        'desktop'
-      ],
-      envOverlay: { ELECTRON_RUN_AS_NODE: '1' }
+      args: ['/opt/ZCode/resources/glm/zcode.cjs', 'app-server', '--stdio', '--surface', 'desktop'],
+      envOverlay: {
+        ELECTRON_RUN_AS_NODE: '1',
+        ZCODE_BUILTIN_PROVIDER_CONFIG_FILE:
+          '/opt/ZCode/resources/config/provider/zcode-builtin.json',
+        ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE:
+          '/opt/ZCode/resources/config/provider/zcode-builtin.json'
+      }
+    })
+  })
+
+  it('preserves an explicit provider config override for a desktop bundle', () => {
+    expect(
+      resolveZcodeLaunchCommand(
+        { ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: '/custom/zcode-builtin.json' },
+        { resolveCommand: () => 'zcode', officialRuntime }
+      )
+    ).toMatchObject({
+      envOverlay: {
+        ELECTRON_RUN_AS_NODE: '1',
+        ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: '/custom/zcode-builtin.json',
+        ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE:
+          '/opt/ZCode/resources/config/provider/zcode-builtin.json'
+      }
     })
   })
 
@@ -38,9 +58,18 @@ describe('resolveZcodeLaunchCommand', () => {
   })
 
   it.each([
-    [['app-server', '--stdio', '--surface', 'terminal'], ['app-server', '--stdio']],
-    [['app-server', '--surface=terminal', '--stdio'], ['app-server', '--stdio']],
-    [['app-server', '--surface', '--stdio'], ['app-server', '--stdio']]
+    [
+      ['app-server', '--stdio', '--surface', 'terminal'],
+      ['app-server', '--stdio']
+    ],
+    [
+      ['app-server', '--surface=terminal', '--stdio'],
+      ['app-server', '--stdio']
+    ],
+    [
+      ['app-server', '--surface', '--stdio'],
+      ['app-server', '--stdio']
+    ]
   ])('normalizes an override surface to desktop', (input, retained) => {
     expect(
       resolveZcodeLaunchCommand({

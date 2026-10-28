@@ -113,12 +113,19 @@ export function resolveZcodeLaunchCommand(
     homePath: env.HOME ?? env.USERPROFILE ?? options.homePath,
     officialRuntime: options.officialRuntime
   })
+  const builtinProviderConfig = env.ZCODE_BUILTIN_PROVIDER_CONFIG_FILE?.trim()
+  const bundledProviderConfig = env.ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE?.trim()
+  const envOverlay = {
+    ...invocation.envOverlay,
+    ...(builtinProviderConfig ? { ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: builtinProviderConfig } : {}),
+    ...(bundledProviderConfig
+      ? { ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE: bundledProviderConfig }
+      : {})
+  }
   return {
     command: invocation.command,
     args: [...invocation.prefixArgs, 'app-server', '--stdio', '--surface', 'desktop'],
-    ...(Object.keys(invocation.envOverlay).length > 0
-      ? { envOverlay: invocation.envOverlay }
-      : {})
+    ...(Object.keys(envOverlay).length > 0 ? { envOverlay } : {})
   }
 }
 
