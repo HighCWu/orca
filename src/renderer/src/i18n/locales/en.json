@@ -4423,7 +4423,18 @@
             "codexSignInError": "Codex sign-in failed. Please try again.",
             "cursorUsageMenu": "Cursor Usage",
             "hiddenUsageProviders": "Also: {{value0}}",
-            "zcodeUsageMenu": "ZCode Usage"
+            "zcodeUsageMenu": "ZCode Usage",
+            "zcode": {
+              "oneFiveHourCard": "1 five-hour rate-limit reset available",
+              "fiveHourCards": "{{value0}} five-hour rate-limit resets available",
+              "oneWeekCard": "1 weekly rate-limit reset available",
+              "weekCards": "{{value0}} weekly rate-limit resets available",
+              "weekCardTitle": "Use a weekly rate-limit reset?",
+              "weekCardBody": "This spends one GLM Coding Plan weekly rate-limit reset on this account and resets its weekly usage window immediately.",
+              "resetCreditTitle": "Use a rate-limit reset?",
+              "resetCreditBody": "This spends one GLM Coding Plan rate-limit reset on this account and resets its five-hour usage window immediately.",
+              "useWeekCard": "Use weekly reset"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Connect an account",
