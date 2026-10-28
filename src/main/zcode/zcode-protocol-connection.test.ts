@@ -173,6 +173,21 @@ describe('zcode protocol connection', () => {
     await expect(connection.request('slow', {}, 200)).rejects.toThrow('timed out')
   })
 
+  it('reports a delayed provider exit instead of the preceding stdout end', async () => {
+    const connection = openConnection({
+      command: process.execPath,
+      args: [
+        '-e',
+        `process.stdout.end(); setTimeout(() => { process.stderr.write('startup failed token=private /home/test/account\\n', () => process.exit(23)) }, 20)`
+      ]
+    })
+    await connection.spawned
+
+    await expect(connection.request('runtime/capabilities', {})).rejects.toThrow(
+      'startup failed token=[redacted] [redacted-path] (code=23 signal=null)'
+    )
+  })
+
   it('closes on an oversized unterminated frame', () => {
     const input = new PassThrough()
     const output = new PassThrough()

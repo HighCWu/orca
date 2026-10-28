@@ -19,5 +19,6 @@ export type ZcodeProtocolRuntimeOptions = {
   onOtherLine?: (line: string) => void
   onDiagnostic?: (message: string) => void
   onClose?: (error: Error) => void
+  onInputEnd?: () => void
   defaultRequestTimeoutMs?: number
 }
