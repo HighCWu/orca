@@ -4084,7 +4084,18 @@
             "codexSignInError": "No se pudo iniciar sesión en Codex. Inténtalo de nuevo.",
             "cursorUsageMenu": "Uso de Cursor",
             "hiddenUsageProviders": "También: {{value0}}",
-            "zcodeUsageMenu": "Uso del código Z"
+            "zcodeUsageMenu": "Uso de ZCode",
+            "zcode": {
+              "oneFiveHourCard": "1 restablecimiento del límite de uso de cinco horas disponible",
+              "fiveHourCards": "{{value0}} restablecimientos del límite de uso de cinco horas disponibles",
+              "oneWeekCard": "1 restablecimiento semanal del límite de uso disponible",
+              "weekCards": "{{value0}} restablecimientos semanales del límite de uso disponibles",
+              "weekCardTitle": "¿Usar un restablecimiento semanal del límite de uso?",
+              "weekCardBody": "Esto consume un restablecimiento semanal del límite de uso de GLM Coding Plan para esta cuenta y restablece de inmediato su ventana de uso semanal.",
+              "resetCreditTitle": "¿Usar un restablecimiento del límite de uso?",
+              "resetCreditBody": "Esto consume un restablecimiento del límite de uso de GLM Coding Plan para esta cuenta y restablece de inmediato su ventana de uso de cinco horas.",
+              "useWeekCard": "Usar restablecimiento semanal"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Conectar una cuenta",

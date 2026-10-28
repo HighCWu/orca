@@ -4069,7 +4069,18 @@
             "codexSignInError": "Codex のサインインに失敗しました。もう一度お試しください。",
             "cursorUsageMenu": "Cursor の使用状況",
             "hiddenUsageProviders": "ほかに: {{value0}}",
-            "zcodeUsageMenu": "ZCode の使用量"
+            "zcodeUsageMenu": "ZCode の使用量",
+            "zcode": {
+              "oneFiveHourCard": "5時間のレート制限リセットが1回利用可能",
+              "fiveHourCards": "5時間のレート制限リセットが{{value0}}回利用可能",
+              "oneWeekCard": "週間レート制限リセットが1回利用可能",
+              "weekCards": "週間レート制限リセットが{{value0}}回利用可能",
+              "weekCardTitle": "週間レート制限リセットを使用しますか？",
+              "weekCardBody": "このアカウントの GLM Coding Plan 週間レート制限リセットを1回使用し、週間使用量ウィンドウをすぐにリセットします。",
+              "resetCreditTitle": "レート制限リセットを使用しますか？",
+              "resetCreditBody": "このアカウントの GLM Coding Plan レート制限リセットを1回使用し、5時間の使用量ウィンドウをすぐにリセットします。",
+              "useWeekCard": "週間リセットを使用"
+            }
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "アカウントを接続する",
