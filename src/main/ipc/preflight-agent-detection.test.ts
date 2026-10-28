@@ -16,6 +16,7 @@ const {
   mergePersistedWindowsPathAsyncMock,
   mergePersistedWindowsPathMock,
   zcodeCapabilityMock,
+  zcodeTerminalAdmissionMock,
   resolveZcodeCliInvocationMock
 } = vi.hoisted(() => ({
   handleMock: vi.fn(),
@@ -32,6 +33,7 @@ const {
   mergePersistedWindowsPathAsyncMock: vi.fn(),
   mergePersistedWindowsPathMock: vi.fn(),
   zcodeCapabilityMock: vi.fn(),
+  zcodeTerminalAdmissionMock: vi.fn(),
   resolveZcodeCliInvocationMock: vi.fn()
 }))
 
@@ -92,6 +94,10 @@ vi.mock('../zcode/interactive-capability', () => ({
   readZCodeInteractiveCapability: zcodeCapabilityMock
 }))
 
+vi.mock('../zcode/terminal-launch-admission', () => ({
+  readZcodeTerminalLaunchAdmission: zcodeTerminalAdmissionMock
+}))
+
 vi.mock('../zcode/zcode-cli-invocation', () => ({
   resolveZcodeCliInvocation: resolveZcodeCliInvocationMock
 }))
@@ -110,6 +116,16 @@ describe('preflight', () => {
   beforeEach(() => {
     runWslProcessMock.mockReset()
     zcodeCapabilityMock.mockReset().mockResolvedValue('interactive')
+    zcodeTerminalAdmissionMock.mockReset().mockResolvedValue({
+      status: 'available',
+      invocation: {
+        command: '/usr/local/bin/zcode',
+        prefixArgs: [],
+        envOverlay: {},
+        identity: 'zcode',
+        source: 'standalone'
+      }
+    })
     resolveZcodeCliInvocationMock.mockReset().mockReturnValue({
       command: '/usr/local/bin/zcode',
       prefixArgs: [],
@@ -336,17 +352,35 @@ describe('preflight', () => {
 
   it('filters a desktop-only ZCode bundle from the terminal agent inventory', async () => {
     isCommandOnLocalPathMock.mockImplementation((command: string) => command === 'zcode')
-    zcodeCapabilityMock.mockResolvedValue('missing-tui')
+    zcodeTerminalAdmissionMock.mockResolvedValue({
+      status: 'desktop-only',
+      invocation: {
+        command: '/opt/ZCode/zcode',
+        prefixArgs: ['/opt/ZCode/resources/glm/zcode.cjs'],
+        envOverlay: { ELECTRON_RUN_AS_NODE: '1' },
+        identity: 'desktop',
+        source: 'desktop-bundle'
+      }
+    })
 
     await expect(detectInstalledAgents()).resolves.not.toContain('zcode')
-    expect(zcodeCapabilityMock).toHaveBeenCalledTimes(1)
+    expect(zcodeTerminalAdmissionMock).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps ZCode when the TUI probe is inconclusive', async () => {
+  it('filters ZCode when the standalone TUI probe is inconclusive', async () => {
     isCommandOnLocalPathMock.mockImplementation((command: string) => command === 'zcode')
-    zcodeCapabilityMock.mockResolvedValue('unknown')
+    zcodeTerminalAdmissionMock.mockResolvedValue({
+      status: 'unverified',
+      invocation: {
+        command: '/usr/local/bin/zcode',
+        prefixArgs: [],
+        envOverlay: {},
+        identity: 'standalone',
+        source: 'standalone'
+      }
+    })
 
-    await expect(detectInstalledAgents()).resolves.toContain('zcode')
+    await expect(detectInstalledAgents()).resolves.not.toContain('zcode')
   })
 
   it('registers agent detection through the shared launch config commands', async () => {
