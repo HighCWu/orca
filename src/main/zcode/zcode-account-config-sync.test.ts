@@ -178,6 +178,9 @@ describe('zcode account config push', () => {
       '3.16.1',
       'endpoint-b'
     )
+    const bundled = join(root, '.zcode', 'v2', 'runtime', 'provider', 'bundled')
+    mkdirSync(bundled, { recursive: true })
+    writeFileSync(join(bundled, 'zcode-builtin.json'), JSON.stringify(BUILT_IN))
     for (const [dir, offset] of [
       [newer, 2_000],
       [older, 1_000]
@@ -196,17 +199,46 @@ describe('zcode account config push', () => {
     ).toBe(join(newer, 'zcode-builtin.json'))
   })
 
-  it('prefers the launch env path and derives the credential path from the data base', () => {
+  it('prefers an explicit active path and derives credentials from the data base', () => {
     const root = makeRoot()
     const paths = resolveZcodeAccountConfigPaths({
       launchEnv: {
         ZCODE_DATA_BASE_DIR: root,
-        ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: join(root, 'explicit.json')
+        ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: join(root, 'explicit.json'),
+        ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE: join(root, 'bundled.json')
       },
       cwd: root
     })
     expect(paths.builtInPath).toBe(join(root, 'explicit.json'))
     expect(paths.credentialsPath).toBe(join(root, '.zcode', 'v2', 'credentials.json'))
+  })
+
+  it('uses the materialized active config when Desktop supplied the bundled seed', () => {
+    const root = makeRoot()
+    const bundled = join(root, 'desktop', 'zcode-builtin.json')
+    const active = join(
+      root,
+      '.zcode',
+      'v2',
+      'runtime',
+      'provider',
+      'linux-x86_64',
+      '3.16.3',
+      'endpoint-test',
+      'zcode-builtin.json'
+    )
+    mkdirSync(join(active, '..'), { recursive: true })
+    writeFileSync(active, JSON.stringify(BUILT_IN))
+
+    expect(
+      resolveZcodeAccountConfigPaths({
+        launchEnv: {
+          ZCODE_DATA_BASE_DIR: root,
+          ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: bundled,
+          ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE: bundled
+        }
+      }).builtInPath
+    ).toBe(active)
   })
 
   it.each(['provider/updateAccountConfig', 'provider/refreshRegistry'])(

@@ -35,7 +35,7 @@ function openContext(
       contextWindow: null,
       modelOptions: null,
       slashCommands: [],
-      launch: { cwd: '/w', env: {} }
+      launch: { cwd: '/w', env: { ZCODE_DATA_BASE_DIR: '/missing-zcode-test-home' } }
     },
     connection,
     makeLane: vi.fn(() => ({
