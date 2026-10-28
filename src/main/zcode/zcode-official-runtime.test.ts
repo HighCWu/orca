@@ -5,14 +5,19 @@
 import { describe, expect, it } from 'vitest'
 import { probeZcodeOfficialRuntimes, resolveZcodeOfficialRuntime } from './zcode-official-runtime'
 
-const LINUX_INSTALL = new Set(['/opt/ZCode/zcode', '/opt/ZCode/resources/glm/zcode.cjs'])
+const LINUX_INSTALL = new Set([
+  '/opt/ZCode/zcode',
+  '/opt/ZCode/resources/glm/zcode.cjs',
+  '/opt/ZCode/resources/config/provider/zcode-builtin.json'
+])
 const MACOS_INSTALL = new Set([
   '/Applications/ZCode.app/Contents/MacOS/ZCode',
-  '/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+  '/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs',
+  '/Applications/ZCode.app/Contents/Resources/config/provider/zcode-builtin.json'
 ])
 
 describe('zcode official runtime discovery', () => {
-  it('resolves a desktop executable to itself plus its bundled CLI', () => {
+  it('resolves a desktop executable to its CLI and provider config', () => {
     expect(
       resolveZcodeOfficialRuntime('/opt/ZCode/zcode', {
         existsSync: (path) => LINUX_INSTALL.has(path),
@@ -20,14 +25,16 @@ describe('zcode official runtime discovery', () => {
       })
     ).toEqual({
       electron: '/opt/ZCode/zcode',
-      bundle: '/opt/ZCode/resources/glm/zcode.cjs'
+      bundle: '/opt/ZCode/resources/glm/zcode.cjs',
+      builtinProviderConfig: '/opt/ZCode/resources/config/provider/zcode-builtin.json'
     })
   })
 
   it('resolves a per-user macOS app when no PATH candidate exists', () => {
     const install = new Set([
       '/Users/test/Applications/ZCode.app/Contents/MacOS/ZCode',
-      '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+      '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs',
+      '/Users/test/Applications/ZCode.app/Contents/Resources/config/provider/zcode-builtin.json'
     ])
     expect(
       probeZcodeOfficialRuntimes([], {
@@ -38,14 +45,17 @@ describe('zcode official runtime discovery', () => {
       })
     ).toEqual({
       electron: '/Users/test/Applications/ZCode.app/Contents/MacOS/ZCode',
-      bundle: '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+      bundle: '/Users/test/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs',
+      builtinProviderConfig:
+        '/Users/test/Applications/ZCode.app/Contents/Resources/config/provider/zcode-builtin.json'
     })
   })
 
   it('resolves a per-user Windows app from LOCALAPPDATA', () => {
     const install = new Set([
       'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\ZCode.exe',
-      'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs'
+      'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs',
+      'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\config\\provider\\zcode-builtin.json'
     ])
     expect(
       probeZcodeOfficialRuntimes([], {
@@ -57,7 +67,9 @@ describe('zcode official runtime discovery', () => {
       })
     ).toEqual({
       electron: 'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\ZCode.exe',
-      bundle: 'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs'
+      bundle: 'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\glm\\zcode.cjs',
+      builtinProviderConfig:
+        'C:\\Users\\test\\AppData\\Local\\Programs\\ZCode\\resources\\config\\provider\\zcode-builtin.json'
     })
   })
 
@@ -70,7 +82,9 @@ describe('zcode official runtime discovery', () => {
       })
     ).toEqual({
       electron: '/Applications/ZCode.app/Contents/MacOS/ZCode',
-      bundle: '/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs'
+      bundle: '/Applications/ZCode.app/Contents/Resources/glm/zcode.cjs',
+      builtinProviderConfig:
+        '/Applications/ZCode.app/Contents/Resources/config/provider/zcode-builtin.json'
     })
   })
 
@@ -97,6 +111,20 @@ describe('zcode official runtime discovery', () => {
       probeZcodeOfficialRuntimes(['/opt/Other/zcode', '/opt/ZCode'], {
         existsSync,
         platform: 'linux'
+      })
+    ).toEqual({
+      electron: '/opt/ZCode/zcode',
+      bundle: '/opt/ZCode/resources/glm/zcode.cjs',
+      builtinProviderConfig: '/opt/ZCode/resources/config/provider/zcode-builtin.json'
+    })
+  })
+
+  it('still resolves an older desktop package without the provider config asset', () => {
+    expect(
+      resolveZcodeOfficialRuntime('/opt/ZCode/zcode', {
+        existsSync: (path) =>
+          path === '/opt/ZCode/zcode' || path === '/opt/ZCode/resources/glm/zcode.cjs',
+        realpathSync: (path) => path
       })
     ).toEqual({
       electron: '/opt/ZCode/zcode',
