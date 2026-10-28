@@ -42,6 +42,31 @@ describe('readZCodeInteractiveCapability', () => {
     expect(spec.env?.ELECTRON_RUN_AS_NODE).toBe('1')
   })
 
+  it('treats a TUI that stays alive through the probe as interactive', async () => {
+    mocks.runProcess.mockResolvedValue({
+      code: null,
+      stdout: '',
+      stderr: '',
+      timedOut: true
+    })
+
+    await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('interactive')
+    await readZCodeInteractiveCapability(desktopInvocation)
+
+    expect(mocks.runProcess).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps missing-TUI output authoritative when termination times out', async () => {
+    mocks.runProcess.mockResolvedValue({
+      code: null,
+      stdout: '',
+      stderr: "Cannot find package '@zcode/tui'",
+      timedOut: true
+    })
+
+    await expect(readZCodeInteractiveCapability(desktopInvocation)).resolves.toBe('missing-tui')
+  })
+
   it('does not classify an unrecognized non-zero exit as interactive', async () => {
     mocks.runProcess.mockResolvedValue({
       code: 1,

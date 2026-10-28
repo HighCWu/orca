@@ -26,13 +26,10 @@ async function probe(invocation: ZcodeCliInvocation): Promise<ZCodeInteractiveCa
       input: '',
       timeoutMs: PROBE_TIMEOUT_MS
     })
-    if (result.timedOut) {
-      return 'unknown'
-    }
     if (isZCodeMissingTuiOutput(`${result.stderr}\n${result.stdout}`)) {
       return 'missing-tui'
     }
-    return result.code === 0 ? 'interactive' : 'unknown'
+    return result.timedOut || result.code === 0 ? 'interactive' : 'unknown'
   } catch {
     return 'unknown'
   }
