@@ -55,6 +55,25 @@ describe('zcode model catalog mapping', () => {
     expect(models[1]).toMatchObject({ label: 'GLM-5 (high)', isDefault: false })
   })
 
+  it('marks the matching model when the configured ref adds a reasoning level', () => {
+    const models = zcodeModelOptionsOf({
+      ...snapshot,
+      settings: {
+        model: {
+          ...snapshot.settings.model,
+          current: {
+            providerId: 'bigmodel',
+            modelId: 'glm-5',
+            options: { reasoningLevel: 'max' }
+          }
+        }
+      }
+    })
+
+    expect(models[0]).toMatchObject({ label: 'GLM-5', isDefault: true })
+    expect(models[1]).toMatchObject({ label: 'GLM-5 (high)', isDefault: false })
+  })
+
   it('round-trips a pick into the selection session/setModel takes', () => {
     const id = zcodeModelOptionId(snapshot.settings.model.available[0])
     expect(zcodeModelSelectionOf(id)).toEqual({ providerId: 'bigmodel', modelId: 'glm-5' })
