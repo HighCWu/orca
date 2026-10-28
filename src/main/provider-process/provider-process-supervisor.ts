@@ -28,7 +28,10 @@ for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) process.on(signal, () => s
 if (ownerGone()) process.exit(1)
 const childEnv = { ...process.env, ...spec.nodeEnv }
 delete childEnv.ORCA_PROVIDER_SUPERVISOR_SPEC
-delete childEnv.ELECTRON_RUN_AS_NODE
+// An explicit launch request re-applies the marker the strip above removed.
+if (spec.nodeEnv.ELECTRON_RUN_AS_NODE === undefined) {
+  delete childEnv.ELECTRON_RUN_AS_NODE
+}
 // The owner sees only this pid's exit; this marked last stderr line says the provider never started.
 const exitWithSpawnFailure = (error, thrown) => {
   const report = { thrown, code: (error && error.code) || 'UNKNOWN', message: String(error && error.message) }
@@ -229,6 +232,12 @@ export function supervisedPosixLaunch(
     if (value !== undefined) {
       nodeEnv[key] = value
     }
+  }
+  // A launch that explicitly requests pure-Node mode (an Electron binary running a JS bundle,
+  // e.g. the official zcode runtime) keeps the marker past the supervisor's own strip below: the
+  // strip exists so providers never inherit the SUPERVISOR's Node mode, not to veto the launch.
+  if (childEnv.ELECTRON_RUN_AS_NODE === '1') {
+    nodeEnv.ELECTRON_RUN_AS_NODE = '1'
   }
   const supervisorSpec = Buffer.from(
     JSON.stringify({
