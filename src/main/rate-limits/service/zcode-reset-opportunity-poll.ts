@@ -10,7 +10,7 @@ export type ZcodeResetOpportunityPollState = {
   accountId: string | null
   nextCheckAt: number
   retryIdempotencyKey: string | null
-  inFlight: Promise<void> | null
+  inFlight: Promise<boolean> | null
 }
 
 const MIN_DENIED_COOLDOWN_MS = 5 * 60_000
@@ -20,13 +20,13 @@ export function pollZcodeResetOpportunity(
   state: ZcodeResetOpportunityPollState,
   signal?: AbortSignal,
   readAccountId: () => string | null = () => readZcodeResetAccountId(zcodeCredentialStorePath())
-): Promise<void> {
+): Promise<boolean> {
   const accountId = readAccountId()
   if (!accountId) {
     state.accountId = null
     state.nextCheckAt = 0
     state.retryIdempotencyKey = null
-    return Promise.resolve()
+    return Promise.resolve(false)
   }
   const accountChanged = state.accountId !== accountId
   if (accountChanged) {
@@ -36,7 +36,7 @@ export function pollZcodeResetOpportunity(
   }
   const now = Date.now()
   if (now < state.nextCheckAt) {
-    return Promise.resolve()
+    return Promise.resolve(false)
   }
   if (state.inFlight) {
     const active = state.inFlight
@@ -58,7 +58,9 @@ export function pollZcodeResetOpportunity(
       if (state.accountId === accountId && readAccountId() === accountId) {
         state.nextCheckAt = nextZcodeResetOpportunityCheckAt(opportunity, now)
         state.retryIdempotencyKey = null
+        return opportunity.granted
       }
+      return false
     })
     .catch((error: unknown) => {
       if (state.accountId === accountId && readAccountId() === accountId) {
@@ -66,6 +68,7 @@ export function pollZcodeResetOpportunity(
         state.nextCheckAt = signal?.aborted ? 0 : now + (throttled ? 10 * 60_000 : 5 * 60_000)
         state.retryIdempotencyKey = idempotencyKey
       }
+      return false
     })
     .finally(() => {
       if (state.inFlight === request) {

@@ -5,12 +5,13 @@ import { fetchGrokRateLimits } from '../grok-fetcher'
 import { readGrokAuthSession } from '../grok-auth'
 import { fetchCursorRateLimits } from '../cursor-fetcher'
 import { readCursorAuthSession } from '../cursor-auth'
-import { fetchZcodeRateLimits, zcodePlanCredentialOf } from '../zcode-usage-fetcher'
+import { zcodePlanCredentialOf } from '../zcode-usage-fetcher'
 import { fetchAntigravityRateLimits } from '../antigravity-usage-fetcher'
 import { antigravityUsageDisabledSnapshot } from '../antigravity-usage-snapshot'
 import { fetchMiniMaxRateLimits } from '../minimax/minimax-fetcher'
 import { createHash } from 'node:crypto'
 import { pollZcodeResetOpportunity } from './zcode-reset-opportunity-poll'
+import { fetchZcodeFullCycle } from './zcode-full-cycle-fetch'
 import { fetchOpenCodeGoUsage } from '../opencode-go-usage-source-selection'
 import { RateLimitServiceFetchPolicy } from './service-fetch-policy'
 import type { SettledProviderResult } from './service-sibling-provider-result'
@@ -182,16 +183,13 @@ export abstract class RateLimitServiceFullCyclePreparation extends RateLimitServ
     const zcodeResultPromise = (
       zcodePlanConfigResult.error
         ? Promise.resolve(this.getZcodePlanCredentialError(zcodePlanConfigResult.error))
-        : fetchZcodeRateLimits({ signal, planCredential: zcodePlanCredential })
+        : fetchZcodeFullCycle({
+            signal,
+            planCredential: zcodePlanCredential,
+            requestResetOpportunity: () => this.maybeRequestZcodeResetOpportunity(signal)
+          })
     ).then(
-      (value) => {
-        // Reset JWTs belong to the CLI-selected account. A saved Orca plan key can name another
-        // account, so never grant cards into that quota lane.
-        if (!zcodePlanCredential && value.status === 'ok') {
-          void this.maybeRequestZcodeResetOpportunity(signal).catch(() => undefined)
-        }
-        return { status: 'fulfilled', value } as const
-      },
+      (value) => ({ status: 'fulfilled', value }) as const,
       (reason) => ({ status: 'rejected', reason }) as const
     )
 
@@ -319,7 +317,7 @@ export abstract class RateLimitServiceFullCyclePreparation extends RateLimitServ
     }
   }
 
-  protected maybeRequestZcodeResetOpportunity(signal?: AbortSignal): Promise<void> {
+  protected maybeRequestZcodeResetOpportunity(signal?: AbortSignal): Promise<boolean> {
     return pollZcodeResetOpportunity(this.zcodeOpportunityPoll, signal)
   }
 }
