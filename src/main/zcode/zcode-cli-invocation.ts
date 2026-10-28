@@ -1,8 +1,5 @@
 import { isAbsolute, win32 } from 'node:path'
-import {
-  resolveStartupShell,
-  tokenizeStartupCommand
-} from '../../shared/tui-agent-startup-shell'
+import { resolveStartupShell, tokenizeStartupCommand } from '../../shared/tui-agent-startup-shell'
 import {
   resolveCliCommand,
   resolveExecutableCommand
@@ -40,9 +37,7 @@ function invocationIdentity(invocation: Omit<ZcodeCliInvocation, 'identity'>): s
   ])
 }
 
-function withIdentity(
-  invocation: Omit<ZcodeCliInvocation, 'identity'>
-): ZcodeCliInvocation {
+function withIdentity(invocation: Omit<ZcodeCliInvocation, 'identity'>): ZcodeCliInvocation {
   return { ...invocation, identity: invocationIdentity(invocation) }
 }
 
@@ -62,7 +57,11 @@ function parseOverride(
     input,
     resolveStartupShell(options.platform ?? process.platform)
   )
-  if (!parsed.ok || parsed.tokens.length === 0 || parsed.spans.some((span) => span.divergesFromShell)) {
+  if (
+    !parsed.ok ||
+    parsed.tokens.length === 0 ||
+    parsed.spans.some((span) => span.divergesFromShell)
+  ) {
     return null
   }
   const [program, ...prefixArgs] = parsed.tokens
@@ -87,12 +86,21 @@ function parseOverride(
 
 function desktopInvocation(
   electron: string,
-  bundle: string
+  bundle: string,
+  builtinProviderConfig?: string
 ): ZcodeCliInvocation {
   return withIdentity({
     command: electron,
     prefixArgs: [bundle],
-    envOverlay: { ELECTRON_RUN_AS_NODE: '1' },
+    envOverlay: {
+      ELECTRON_RUN_AS_NODE: '1',
+      ...(builtinProviderConfig
+        ? {
+            ZCODE_BUILTIN_PROVIDER_CONFIG_FILE: builtinProviderConfig,
+            ZCODE_BUILTIN_PROVIDER_BUNDLED_CONFIG_FILE: builtinProviderConfig
+          }
+        : {})
+    },
     source: 'desktop-bundle'
   })
 }
@@ -111,7 +119,7 @@ export function resolveZcodeCliInvocation(
         ? resolveZcodeOfficialRuntime(parsed.command, options.officialRuntime ?? {})
         : null
     return official
-      ? desktopInvocation(official.electron, official.bundle)
+      ? desktopInvocation(official.electron, official.bundle, official.builtinProviderConfig)
       : withIdentity({
           command: parsed.command,
           prefixArgs: parsed.prefixArgs,
@@ -127,7 +135,7 @@ export function resolveZcodeCliInvocation(
   })
   const official = resolveZcodeOfficialRuntime(command, options.officialRuntime ?? {})
   if (official) {
-    return desktopInvocation(official.electron, official.bundle)
+    return desktopInvocation(official.electron, official.bundle, official.builtinProviderConfig)
   }
   if (isAbsoluteForPlatform(command, options.platform ?? process.platform)) {
     return withIdentity({
@@ -144,7 +152,11 @@ export function resolveZcodeCliInvocation(
     ...options.officialRuntime
   })
   return conventional
-    ? desktopInvocation(conventional.electron, conventional.bundle)
+    ? desktopInvocation(
+        conventional.electron,
+        conventional.bundle,
+        conventional.builtinProviderConfig
+      )
     : withIdentity({
         command,
         prefixArgs: [],
