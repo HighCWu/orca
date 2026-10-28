@@ -88,10 +88,26 @@ function sameRef(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right)
 }
 
+function sameModel(left: unknown, right: unknown): boolean {
+  const refShape = z.looseObject({ providerId: z.string(), modelId: z.string() })
+  const leftRef = refShape.safeParse(left)
+  const rightRef = refShape.safeParse(right)
+  return (
+    leftRef.success &&
+    rightRef.success &&
+    leftRef.data.providerId === rightRef.data.providerId &&
+    leftRef.data.modelId === rightRef.data.modelId
+  )
+}
+
 /** The chat-model rows a session snapshot's model table maps to. */
 export function zcodeModelOptionsOf(snapshot: ZcodeCatalogSnapshot): AgentSessionModelOption[] {
   const configured = configuredRef(snapshot)
   const options = snapshot.settings?.model?.available ?? []
+  const exactConfiguredOption = options.find((option) => sameRef(configured, option.ref))
+  const fallbackConfiguredOption = exactConfiguredOption
+    ? undefined
+    : options.find((option) => !option.disabledReason && sameModel(configured, option.ref))
   const mapped: AgentSessionModelOption[] = []
   for (const option of options) {
     if (option.disabledReason) {
@@ -101,7 +117,7 @@ export function zcodeModelOptionsOf(snapshot: ZcodeCatalogSnapshot): AgentSessio
       id: zcodeModelOptionId(option),
       label: option.label,
       ...(option.description ? { description: option.description } : {}),
-      isDefault: sameRef(configured, option.ref),
+      isDefault: option === (exactConfiguredOption ?? fallbackConfiguredOption),
       efforts:
         option.reasoning?.levels.map((level) => ({
           value: level.value,
