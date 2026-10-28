@@ -42,6 +42,10 @@ export class ZcodeProtocolRuntime {
     input.on('data', (chunk: string) => this.ingest(chunk))
     input.on('error', (error: Error) => this.close(error))
     input.on('end', () => {
+      if (this.options.onInputEnd) {
+        this.options.onInputEnd()
+        return
+      }
       this.close(new ZcodeConnectionClosedError('The ZCode agent closed its protocol stream'))
     })
     output.on('error', (error: Error) => this.close(error))

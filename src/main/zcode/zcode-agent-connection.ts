@@ -7,6 +7,7 @@ import {
   type ProviderProcessExit
 } from '../provider-process/managed-provider-process'
 import type { ProviderProcessLaunch } from '../provider-process/provider-process-launch'
+import { sanitizeCrashReportString } from '../../shared/crash-report-redaction'
 import {
   ZcodeConnectionClosedError,
   ZcodeProtocolRuntime,
@@ -14,6 +15,20 @@ import {
 } from './zcode-protocol-connection'
 
 const capabilitiesSchema = z.looseObject({ independentPlanState: z.boolean().optional() })
+const PROTOCOL_END_EXIT_GRACE_MS = 100
+
+function providerExitReason(
+  managed: ManagedProviderProcess,
+  exit: ProviderProcessExit
+): ZcodeConnectionClosedError {
+  const status = exit.processless
+    ? 'processless spawn failure'
+    : `code=${exit.code ?? 'null'} signal=${exit.signal ?? 'null'}`
+  const detail = sanitizeCrashReportString(managed.stderrTail().trim(), 2_000)
+  return new ZcodeConnectionClosedError(
+    detail ? `${detail} (${status})` : `The ZCode agent exited (${status})`
+  )
+}
 
 export type ZcodeAgentConnectionOptions = {
   onRequest?: ZcodeProtocolRuntimeOptions['onRequest']
@@ -48,10 +63,28 @@ export function createZcodeAgentConnection(
   })
   let closing = false
   let lifecycleError: Error | undefined
+  let protocolEndTimer: ReturnType<typeof setTimeout> | null = null
   const runtime = new ZcodeProtocolRuntime(managed.child.stdout, managed.child.stdin, {
     onRequest: options.onRequest,
     onDiagnostic: options.onDiagnostic,
+    onInputEnd: () => {
+      if (runtime.closed) {
+        return
+      }
+      if (managed.exitStatus) {
+        runtime.close(providerExitReason(managed, managed.exitStatus))
+        return
+      }
+      protocolEndTimer ??= setTimeout(() => {
+        protocolEndTimer = null
+        runtime.close(new ZcodeConnectionClosedError('The ZCode agent closed its protocol stream'))
+      }, PROTOCOL_END_EXIT_GRACE_MS)
+    },
     onClose: (error) => {
+      if (protocolEndTimer) {
+        clearTimeout(protocolEndTimer)
+        protocolEndTimer = null
+      }
       lifecycleError ??= error
       if (closing || managed.rootVerdict === 'exited') {
         return
@@ -93,9 +126,7 @@ export function createZcodeAgentConnection(
   managed.child.on('error', (error) => runtime.close(error))
   managed.child.stderr.on('error', (error) => runtime.close(error))
   managed.onExit((exit) => {
-    const reason = new ZcodeConnectionClosedError(
-      managed.stderrTail().trim() || `${launch.command} exited`
-    )
+    const reason = providerExitReason(managed, exit)
     runtime.close(reason)
     try {
       options.onExit?.(reason, { expected: closing, exit })
