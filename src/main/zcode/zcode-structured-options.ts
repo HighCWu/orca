@@ -7,9 +7,11 @@ import {
   configuredModelIdOf,
   configuredModelSelectionOf,
   currentEffortOf,
+  currentZcodeSessionMode,
   zcodeCatalogSnapshotSchema,
   zcodeModelOptionsOf,
-  zcodeModelSelectionOf
+  zcodeModelSelectionOf,
+  zcodeReportedPermissionMode
 } from './zcode-session-snapshot-facts'
 
 export type ZcodeCatalogSnapshot = z.infer<typeof zcodeCatalogSnapshotSchema>
@@ -85,13 +87,20 @@ export function composeZcodeLiveOptions(
   snapshot: ZcodeCatalogSnapshot | null
 ): StructuredAgentSessionLiveOptions {
   if (!snapshot) {
-    return { models: child.modelOptions ?? [], current: currentZcodeOptions(child) }
+    return {
+      models: child.modelOptions ?? [],
+      current: {
+        ...currentZcodeOptions(child),
+        reportedPermissionMode: zcodeReportedPermissionMode(child.currentMode)
+      }
+    }
   }
   const models = zcodeModelOptionsOf(snapshot)
   const selection = configuredModelSelectionOf(snapshot)
   child.currentModel = configuredModelIdOf(snapshot) ?? child.currentModel
   child.currentSelection = selection ?? child.currentSelection
   child.currentEffort = currentEffortOf(snapshot) ?? child.currentEffort
+  child.currentMode = currentZcodeSessionMode(snapshot) ?? child.currentMode
   child.modelOptions = models
   const currentModelOption = child.currentSelection
     ? JSON.stringify([child.currentSelection.providerId, child.currentSelection.modelId])
@@ -101,7 +110,13 @@ export function composeZcodeLiveOptions(
   } else {
     child.optionRestoreFailures.delete('model')
   }
-  return { models, current: currentZcodeOptions(child) }
+  return {
+    models,
+    current: {
+      ...currentZcodeOptions(child),
+      reportedPermissionMode: zcodeReportedPermissionMode(child.currentMode)
+    }
+  }
 }
 
 async function switchZcodeSelection(

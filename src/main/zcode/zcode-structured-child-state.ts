@@ -6,6 +6,7 @@ import type { ZcodeAgentConnection, ZcodeAgentConnectionOptions } from './zcode-
 import type { ZcodeV4ConversationChannel } from './v4/zcode-v4-conversation-channel'
 import type { ZcodeStructuredLane } from './zcode-structured-lane'
 import type { ZcodeStructuredPrompts } from './zcode-structured-prompts'
+import type { ZcodeSessionMode } from './zcode-session-snapshot-facts'
 
 export type ZcodeStructuredChild = {
   sessionId: string
@@ -19,6 +20,7 @@ export type ZcodeStructuredChild = {
   currentModel: string | null
   currentSelection: { providerId: string; modelId: string } | null
   currentEffort: string | null
+  currentMode: ZcodeSessionMode | null
   contextWindow: number | null
   slashCommands: { name: string; description?: string; inputHint?: string }[] | null
   modelOptions: AgentSessionModelOption[] | null

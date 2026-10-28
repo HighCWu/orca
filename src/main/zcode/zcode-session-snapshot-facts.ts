@@ -14,6 +14,8 @@ const thoughtLevelSchema = z.looseObject({
   description: z.string().optional()
 })
 
+const zcodeSessionModeSchema = z.enum(['plan', 'build', 'edit', 'yolo', 'guarded', 'auto'])
+
 const optionRefSchema = z.looseObject({
   ref: z.looseObject({
     providerId: z.string(),
@@ -44,7 +46,9 @@ export const zcodeCatalogSnapshotSchema = z.looseObject({
           available: z.array(optionRefSchema).optional()
         })
         .optional(),
-      thoughtLevel: z.unknown().optional()
+      thoughtLevel: z.unknown().optional(),
+      mode: z.looseObject({ current: zcodeSessionModeSchema }).optional(),
+      permission: z.looseObject({ mode: zcodeSessionModeSchema.optional() }).optional()
     })
     .optional(),
   slashCommands: z
@@ -148,6 +152,18 @@ export function configuredModelIdOf(snapshot: ZcodeCatalogSnapshot): string | un
     return current
   }
   return configuredModelSelectionOf(snapshot)?.modelId
+}
+
+export type ZcodeSessionMode = z.infer<typeof zcodeSessionModeSchema>
+
+export function currentZcodeSessionMode(snapshot: ZcodeCatalogSnapshot): ZcodeSessionMode | null {
+  return snapshot.settings?.permission?.mode ?? snapshot.settings?.mode?.current ?? null
+}
+
+export function zcodeReportedPermissionMode(
+  mode: ZcodeSessionMode | null
+): 'ask' | 'full-access' | null {
+  return mode === null ? null : mode === 'yolo' ? 'full-access' : 'ask'
 }
 
 /** The window the session's current model runs in, as the snapshot reported. */

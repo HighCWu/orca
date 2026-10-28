@@ -36,6 +36,7 @@ function child(): ZcodeStructuredChild {
     currentModel: null,
     currentSelection: null,
     currentEffort: null,
+    currentMode: null,
     contextWindow: null,
     slashCommands: null,
     modelOptions: null,

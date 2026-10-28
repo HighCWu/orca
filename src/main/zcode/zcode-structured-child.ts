@@ -242,6 +242,7 @@ export async function acquireZcodeStructuredSession(input: {
     currentModel: null,
     currentSelection: null,
     currentEffort: null,
+    currentMode: null,
     contextWindow: null,
     modelOptions: null,
     optionRestoreFailures: new Set(),

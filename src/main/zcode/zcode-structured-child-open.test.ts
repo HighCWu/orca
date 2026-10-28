@@ -10,7 +10,9 @@ const SNAPSHOT = {
       current: { providerId: 'bigmodel', modelId: 'GLM-5.3' },
       available: [{ ref: { providerId: 'bigmodel', modelId: 'GLM-5.3' }, label: 'GLM-5.3' }]
     },
-    thoughtLevel: { current: 'high', available: [{ value: 'high', label: 'High' }] }
+    thoughtLevel: { current: 'high', available: [{ value: 'high', label: 'High' }] },
+    mode: { current: 'build' },
+    permission: { mode: 'build' }
   },
   projection: { turnCount: 0 },
   slashCommands: []
@@ -32,6 +34,7 @@ function openContext(
       providerSessionId: null,
       currentModel: null,
       currentEffort: null,
+      currentMode: null,
       contextWindow: null,
       modelOptions: null,
       slashCommands: [],
@@ -83,6 +86,37 @@ describe('zcode child open channel switch', () => {
     // No usage seed: the v4 frame stream carries the usage state itself.
     expect(applied).toEqual([])
     expect(result.link?.handle.nativeId).toBe('sess_v4')
+    expect(result.reportedOptions.reportedPermissionMode).toBe('ask')
+  })
+
+  it('creates an explicit Full access chat in ZCode yolo mode', async () => {
+    const requested: { method: string; params: unknown }[] = []
+    const connection = {
+      request: vi.fn((method: string, params?: unknown) => {
+        requested.push({ method, params })
+        return Promise.resolve({
+          ...SNAPSHOT,
+          settings: {
+            ...SNAPSHOT.settings,
+            mode: { current: 'yolo' },
+            permission: { mode: 'yolo' }
+          }
+        })
+      })
+    }
+    const { context } = openContext(
+      connection,
+      vi.fn(async () => true)
+    )
+    context.child.launch.permissionMode = 'full-access'
+
+    const result = await buildZcodeChildOpen(context)(new AbortController().signal)
+
+    expect(requested[0]).toEqual({
+      method: 'session/create',
+      params: expect.objectContaining({ mode: 'yolo' })
+    })
+    expect(result.reportedOptions.reportedPermissionMode).toBe('full-access')
   })
 
   it('keeps the legacy subscription and usage seed when the channel is absent', async () => {
@@ -121,6 +155,75 @@ describe('zcode child open channel switch', () => {
     await open(new AbortController().signal)
 
     expect(requested).toEqual(['session/create', 'session/subscribe'])
+  })
+
+  it('applies a changed explicit permission mode when resuming', async () => {
+    const requested: { method: string; params: unknown }[] = []
+    const connection = {
+      request: vi.fn((method: string, params?: unknown) => {
+        requested.push({ method, params })
+        if (method === 'session/setMode') {
+          return Promise.resolve({
+            ...SNAPSHOT,
+            settings: {
+              ...SNAPSHOT.settings,
+              mode: { current: 'yolo' },
+              permission: { mode: 'yolo' }
+            }
+          })
+        }
+        return Promise.resolve(SNAPSHOT)
+      })
+    }
+    const { context } = openContext(
+      connection,
+      vi.fn(async () => true),
+      {
+        sessionId: 'sess_v4',
+        key: 'sess_v4'
+      }
+    )
+    context.child.launch.permissionMode = 'full-access'
+
+    const result = await buildZcodeChildOpen(context)(new AbortController().signal)
+
+    expect(requested.map(({ method }) => method)).toEqual(['session/resume', 'session/setMode'])
+    expect(requested[1]).toEqual({
+      method: 'session/setMode',
+      params: { sessionId: 'sess_v4', mode: 'yolo' }
+    })
+    expect(result.reportedOptions.reportedPermissionMode).toBe('full-access')
+  })
+
+  it('keeps the resumed ZCode mode when the chat follows Agent Permissions', async () => {
+    const requested: string[] = []
+    const connection = {
+      request: vi.fn((method: string) => {
+        requested.push(method)
+        return Promise.resolve({
+          ...SNAPSHOT,
+          settings: {
+            ...SNAPSHOT.settings,
+            mode: { current: 'guarded' },
+            permission: { mode: 'guarded' }
+          }
+        })
+      })
+    }
+    const { context } = openContext(
+      connection,
+      vi.fn(async () => true),
+      {
+        sessionId: 'sess_v4',
+        key: 'sess_v4'
+      }
+    )
+    context.child.launch.permissionMode = 'own'
+
+    const result = await buildZcodeChildOpen(context)(new AbortController().signal)
+
+    expect(requested).toEqual(['session/resume'])
+    expect(result.reportedOptions.reportedPermissionMode).toBe('ask')
   })
 
   it('opens a fresh draft when the resume names a never-sent session the CLI lost', async () => {

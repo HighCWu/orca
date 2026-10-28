@@ -57,7 +57,11 @@ function permission(snapshot: readonly SessionOptionDescriptor[]): string | null
   return entry?.kind.type === 'select' ? entry.kind.currentValue : null
 }
 
-function renderReopened(fence: number, agent: 'codex' | 'claude' = 'codex') {
+function renderReopened(
+  fence: number,
+  agent: 'codex' | 'claude' | 'zcode' = 'codex',
+  providerRunning = true
+) {
   return renderHook(
     (props: { fence: number; stamp: string }) =>
       useStructuredAgentSessionOptions({
@@ -67,6 +71,7 @@ function renderReopened(fence: number, agent: 'codex' | 'claude' = 'codex') {
         transportEnabled: true,
         isVisible: true,
         providerVisible: true,
+        providerRunning,
         fence: props.fence,
         turnId: null,
         unloadedTurnRevisions: undefined,
@@ -120,6 +125,18 @@ describe('the permission mode another device picks', () => {
     mocks.call.mockImplementation(() => new Promise(() => {}))
     rerender({ fence: 2, stamp: 'model-a|own' })
     expect(row()).toMatchObject({ description: 'Permissions', settable: false })
+    unmount()
+  })
+
+  it('uses the saved ZCode mode while its provider is sleeping', async () => {
+    optionsAnswering('full-access')
+    const { result, unmount } = renderReopened(1, 'zcode', false)
+
+    await waitFor(() =>
+      expect(
+        result.current.optionSnapshot.find((descriptor) => descriptor.id === 'permissionMode')
+      ).toMatchObject({ description: 'Full access', settable: true })
+    )
     unmount()
   })
 

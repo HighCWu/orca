@@ -54,7 +54,41 @@ describe('the permission mode picker', () => {
         }
       })
     }
-    expect(permission({ ...capable, permissionMode: 'ask' })?.settable).toBe(false)
+    expect(
+      permission({ ...capable, permissionMode: 'ask', runtimePermissionRequired: true })?.settable
+    ).toBe(false)
+  })
+
+  it('uses an explicit saved mode while the capable host has no running provider', () => {
+    const state = live('zcode', { permissionMode: 'full-access' })
+
+    expect(permission({ ...state, permissionOwnSupported: true })).toMatchObject({
+      description: 'Full access',
+      settable: true,
+      kind: { currentValue: 'full-access' },
+      valueSource: 'applied'
+    })
+    expect(
+      permission({ ...state, permissionOwnSupported: true, runtimePermissionRequired: true })
+    ).toMatchObject({ description: 'Permissions', settable: false })
+  })
+
+  it('enables ZCode permissions when the app-server reports its session mode', () => {
+    const state = live('zcode', {
+      permissionMode: 'own',
+      reportedPermissionMode: 'full-access'
+    })
+
+    expect(permission({ ...state, permissionOwnSupported: true })).toMatchObject({
+      settable: true,
+      kind: {
+        currentValue: 'full-access',
+        choices: [
+          expect.objectContaining({ value: 'ask' }),
+          expect.objectContaining({ value: 'full-access' })
+        ]
+      }
+    })
   })
 
   it('shows the seeded mode before the agent starts, beside the quiet model pill', () => {
