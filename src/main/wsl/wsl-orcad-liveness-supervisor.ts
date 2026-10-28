@@ -156,6 +156,8 @@ export class WslOrcadLivenessSupervisor {
       }
       return
     }
+    // A holder that took the previous orcad's idle release just before this launch is gone now.
+    await ensureHolderQuietly(this.deps.ensureHolder, entry.distro)
     // Do not overwrite the timer owned by a superseding connect.
     if (entry.generation === generation) {
       this.scheduleHeartbeat(entry)
@@ -225,7 +227,7 @@ export class WslOrcadLivenessSupervisor {
     if (isWatchOrHolderExit(trigger) && confirmsRunning(running, entry.key)) {
       // Stopping distros can still appear running; wait before exec accidentally boots them again.
       await new Promise<void>((resolve) => this.schedule(EXIT_SETTLE_MS, resolve))
-      running = await this.deps.readRunning()
+      running = await this.deps.readRunning({ distro: entry.distro, exitedAt: entry.lastExitMs })
       if (entry.generation !== generation) {
         return
       }

@@ -1,5 +1,5 @@
 import { AGENT_SESSION_PERMISSION_OWN_RUNTIME_CAPABILITY } from '../../../shared/agent-session-permission-modes-capability'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useAppStore } from '@/store'
 import {
   AGENT_SESSION_CONVERSATION_STOP_RUNTIME_CAPABILITY,
@@ -37,19 +37,19 @@ export function useStructuredAgentSessionOwnPermissionState(
 ): StructuredAgentSessionHostCapabilityState {
   const capability = AGENT_SESSION_PERMISSION_OWN_RUNTIME_CAPABILITY
   const environmentId = target?.kind === 'environment' ? target.environmentId : null
-  const statuses = useAppStore((state) => state.runtimeStatusByEnvironmentId)
-  const remote = useMemo((): StructuredAgentSessionHostCapabilityState => {
+  // Select the verdict, not the map: unrelated host flips must not rerender every chat.
+  const remote = useAppStore((state): StructuredAgentSessionHostCapabilityState => {
     if (environmentId === null) {
       return 'unknown'
     }
-    const entry = statuses.get(environmentId)
+    const entry = state.runtimeStatusByEnvironmentId.get(environmentId)
     const status = isRuntimeHostContactRevoked(entry) ? null : lastVerifiedRuntimeStatus(entry)
     return status
       ? status.capabilities?.includes(capability)
         ? 'supported'
         : 'unsupported'
       : 'unknown'
-  }, [statuses, environmentId, capability])
+  })
   const local = useSyncExternalStore(
     subscribeLocalRuntimeCapabilityObservation,
     () => localCapabilityState(capability),
