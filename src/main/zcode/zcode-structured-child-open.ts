@@ -6,8 +6,11 @@ import {
   configuredModelIdOf,
   contextWindowOf,
   currentEffortOf,
+  currentZcodeSessionMode,
   zcodeCatalogSnapshotSchema,
-  zcodeModelOptionsOf
+  zcodeModelOptionsOf,
+  zcodeReportedPermissionMode,
+  type ZcodeSessionMode
 } from './zcode-session-snapshot-facts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -35,10 +38,13 @@ export type ZcodeSessionOpenContext = {
   logger?: StructuredAgentSessionLogger
 }
 
-/** ZCode session mode per Orca permission mode; absent leaves the server default. */
-export function zcodeSessionMode(permissionMode: string | undefined): string | undefined {
+/** Explicit Orca choices override the session; own leaves ZCode's current/default mode intact. */
+export function zcodeSessionMode(permissionMode: string | undefined): ZcodeSessionMode | undefined {
   if (permissionMode === 'full-access') {
     return 'yolo'
+  }
+  if (permissionMode === 'ask') {
+    return 'build'
   }
   return undefined
 }
@@ -126,6 +132,18 @@ export async function openZcodeSession(
   }
   const read = zcodeCatalogSnapshotSchema.parse(snapshot)
   const providerSessionId = read.session.sessionId
+  const targetMode = zcodeSessionMode(child.launch.permissionMode)
+  const observedMode = currentZcodeSessionMode(read)
+  let currentMode = observedMode ?? targetMode ?? null
+  if (resumedSession && targetMode && observedMode && observedMode !== targetMode) {
+    const modeSnapshot = zcodeCatalogSnapshotSchema.parse(
+      await connection.request('session/setMode', {
+        sessionId: providerSessionId,
+        mode: targetMode
+      })
+    )
+    currentMode = currentZcodeSessionMode(modeSnapshot) ?? targetMode
+  }
   child.providerSessionId = providerSessionId
   child.currentModel = configuredModelIdOf(read) ?? null
   // The v4 switchModelConfig command speaks in whole selections; the v3 wire only needs
@@ -136,6 +154,7 @@ export async function openZcodeSession(
     .safeParse(read.settings?.model?.current)
   child.currentSelection = selection.success ? selection.data : null
   child.currentEffort = currentEffortOf(read)
+  child.currentMode = currentMode
   child.contextWindow = contextWindowOf(read)
   child.modelOptions = zcodeModelOptionsOf(read)
   child.slashCommands = read.slashCommands ?? []
@@ -179,7 +198,8 @@ export async function openZcodeSession(
     link,
     reportedOptions: {
       ...(child.currentModel ? { model: child.currentModel } : {}),
-      ...(child.currentEffort ? { effort: child.currentEffort } : {})
+      ...(child.currentEffort ? { effort: child.currentEffort } : {}),
+      reportedPermissionMode: zcodeReportedPermissionMode(child.currentMode)
     }
   }
 }

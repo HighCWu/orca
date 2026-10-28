@@ -38,6 +38,7 @@ function childWith(overrides?: Partial<ZcodeStructuredChild>): {
     currentModel: SELECTION.modelId,
     currentSelection: { ...SELECTION },
     currentEffort: 'high',
+    currentMode: 'build',
     contextWindow: null,
     slashCommands: null,
     modelOptions: null,
@@ -240,6 +241,25 @@ describe('zcode execution options at dispatch', () => {
     await adapterWith(child).dispatch(dispatchInput())
 
     expect(calls).toEqual(['sendText'])
+  })
+})
+
+describe('zcode live option reporting', () => {
+  it('reports the actual ZCode mode to the Permissions picker', async () => {
+    const { child } = childWith({ currentMode: 'yolo' })
+    child.connection.request = vi.fn(async () => ({
+      session: { sessionId: 'sess_p' },
+      settings: {
+        model: { current: SELECTION, available: [] },
+        thoughtLevel: { current: 'high' },
+        mode: { current: 'yolo' },
+        permission: { mode: 'yolo' }
+      }
+    }))
+
+    const options = await adapterWith(child).readOptions({ sessionId: 's1', fence: 1 })
+
+    expect(options.current.reportedPermissionMode).toBe('full-access')
   })
 })
 

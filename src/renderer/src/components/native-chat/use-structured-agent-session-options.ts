@@ -1,7 +1,4 @@
-import type { StructuredAgentSessionMutate } from './use-structured-agent-session-mutate'
-import type { StructuredAgentSessionLaunchView } from './use-native-chat-provisional-launch'
-import type { AgentType } from '../../../../shared/agent-status-types'
-import type { RuntimeClientTarget } from '../../../../shared/runtime-client-target'
+import type { StructuredAgentSessionOptionsArgs } from './structured-agent-session-options-args'
 import { toast } from 'sonner'
 import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import type { AgentSessionOptionResult } from '../../../../shared/agent-session-wire'
@@ -25,23 +22,6 @@ import {
   holdStructuredAgentSessionLaunchOption,
   type StructuredLaunchOptionOutcome
 } from '@/lib/structured-agent-session-launch-options'
-
-export type StructuredAgentSessionOptionsArgs = {
-  agent: AgentType
-  sessionId: string
-  target: RuntimeClientTarget
-  transportEnabled: boolean
-  isVisible: boolean
-  providerVisible: boolean
-  providerStarting?: boolean
-  providerRunning?: boolean
-  hostOptionStamp?: string
-  fence: number | null
-  turnId: string | null
-  unloadedTurnRevisions: number | undefined
-  mutate: StructuredAgentSessionMutate
-  launch?: StructuredAgentSessionLaunchView
-}
 
 const NO_HELD_OPTIONS: Readonly<Record<string, string>> = {}
 
@@ -88,7 +68,6 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     providerVisible,
     providerStarting,
     hostOptionStamp: args.hostOptionStamp ?? '',
-    // Before start only resumed chats have recorded model evidence; new chats must wait instead of showing a guess.
     readsBeforeStart: launch?.kind !== 'new',
     turnId,
     unloadedTurnRevisions: args.unloadedTurnRevisions
@@ -105,7 +84,6 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     target,
     optionCatalog,
     enabled: args.isVisible,
-    // A resumed conversation may keep its own model, so only a new one runs the listed default.
     newLaunch,
     ...(launch?.worktree ? { worktree: launch.worktree } : {}),
     fence,
@@ -117,11 +95,15 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     updateOptionState,
     receiveCatalog
   })
-
   const pendingView = useCallback(
     (state: StructuredAgentSessionOptionState) =>
-      optionView(state, launchSeedOptions, held, launch?.explicitOptions),
-    [held, launch?.explicitOptions, launchSeedOptions, optionView]
+      optionView(
+        { ...state, runtimePermissionRequired: args.providerRunning === true },
+        launchSeedOptions,
+        held,
+        launch?.explicitOptions
+      ),
+    [args.providerRunning, held, launch?.explicitOptions, launchSeedOptions, optionView]
   )
 
   const rememberOptionPicks = useRememberSessionOptionPicks(target, agent)
@@ -161,7 +143,6 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
               ? commitStructuredAgentSessionOptionValues(current, committed)
               : current
           )
-          // The launch seed names the model an effort-only pick was made under.
           rememberOptionPicks(
             optionView(currentState, launchSeedOptions, NO_HELD_OPTIONS),
             committed
@@ -246,7 +227,6 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
         return false
       }
       if (!transportEnabled || fence === null) {
-        // No fence yet: the launch holds it and applies it before anything else is sent.
         const applied = holdStructuredAgentSessionLaunchOption(sessionId, id, encoded, view)
         void applied?.then(settleLaunchOptionPick)
         return applied !== null
@@ -270,7 +250,6 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
   const setOption = useCallback(
     async (id: string, value: string | boolean) => {
       await setStructuredOption(id, value)
-      // Read held picks directly; an accepted launch pick may precede this render’s props.
       const currentHeld = getStructuredAgentSessionLaunchSelection(sessionId)?.held
       return {
         snapshot: lockSnapshotRef.current(
@@ -297,15 +276,10 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     transportEnabled && conversationSupport?.sessionId === sessionId ? conversationSupport : null
   return {
     conversationCommands: support?.commands ?? [],
-    /** Absent unless this host and session can change the goal. */
     threadGoal: support?.threadGoal,
-    /** A goal only the agent's own `/goal` changes; absent from a host that predates it. */
     reportedThreadGoal: support?.reportedThreadGoal,
-    /** Absent from a host that predates it or a session that writes no context facts. */
     contextUsage: support?.contextUsage,
-    /** Absent from a host that predates it, and until the options read answers. */
     acceptsImages: support?.acceptsImages,
-    /** Undefined until this fence's options read answers. */
     rewind: support?.fence === fence ? support.rewind : undefined,
     optionSnapshot,
     optionSurface,

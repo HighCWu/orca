@@ -56,6 +56,7 @@ export function structuredAgentSessionPermissionDescriptor(state: {
   permissionMode: string | null
   permissionOwnSupported?: boolean | null
   reportedPermissionMode?: string | null
+  runtimePermissionRequired?: boolean
 }): SessionOptionDescriptor | null {
   const support = agentChatPermissionModes(state.record.agent)
   const own = state.permissionMode === 'own'
@@ -63,7 +64,9 @@ export function structuredAgentSessionPermissionDescriptor(state: {
     return null
   }
   const current =
-    state.reportedPermissionMode === undefined && !own && state.permissionOwnSupported !== true
+    state.reportedPermissionMode === undefined &&
+    !own &&
+    (state.permissionOwnSupported !== true || state.runtimePermissionRequired !== true)
       ? (state.permissionMode ?? undefined)
       : (state.reportedPermissionMode ?? undefined)
   const reported = support.modes.find((mode) => mode === current)

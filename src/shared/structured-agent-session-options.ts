@@ -64,6 +64,7 @@ export type StructuredAgentSessionOptionState = {
   permissionMode: string | null
   reportedPermissionMode?: string | null
   permissionOwnSupported?: boolean | null
+  runtimePermissionRequired?: boolean
   pendingId: string | null
   listingInProgress?: boolean
   fastModeRestricted?: boolean
