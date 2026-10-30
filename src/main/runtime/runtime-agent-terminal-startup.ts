@@ -1,4 +1,4 @@
-import type { SessionOptionValue } from '../../shared/native-chat-session-options'
+import type { SessionOptionValue } from '../../shared/native-chat/input/native-chat-session-options'
 import type { TuiAgent } from '../../shared/tui-agent'
 import type { AgentLaunchPreferences } from '../../shared/agent-session-host-authority'
 import {
@@ -36,6 +36,8 @@ import { resolveQoderTerminalCommand } from './qoder-terminal-command-resolution
 import { resolveStartupShell } from '../../shared/tui-agent-startup-shell'
 import { resolveWslSessionContext } from '../daemon/wsl-session-context'
 import { isTuiAgentEnabled } from '../../shared/tui-agent-selection'
+import { assertZcodeTerminalLaunchAvailable } from '../zcode/terminal-launch-admission'
+import { resolveWslHostAgentLaunchInputs } from './wsl-host-agent-terminal-launch'
 
 /** No launch command could be built for a requested `startupAgent`. */
 export class AgentLaunchUnbuildableError extends Error {}
@@ -112,6 +114,21 @@ export async function resolveAgentTerminalCreateOptions(
     (plannedAgent
       ? resolveAgentLaunchRuntime(store, workspace, opts.shellOverride, plannedAgent)
       : undefined)
+  if (
+    plannedAgent === 'zcode' &&
+    runtime &&
+    !workspace.connectionId &&
+    !resolveWslSessionContext({
+      cwd: resolveTerminalStartupCwd(workspace.path, opts.cwd) ?? workspace.path,
+      shellOverride: runtime.pty.shellOverride,
+      terminalWindowsWslDistro: runtime.pty.terminalWindowsWslDistro
+    })
+  ) {
+    await assertZcodeTerminalLaunchAvailable({
+      commandSettings: store.getSettings(),
+      pathEnv: process.env.PATH ?? process.env.Path
+    })
+  }
   const launch =
     plannedAgent && runtime
       ? await buildRuntimeAgentTerminalStartupOptions(
@@ -166,16 +183,19 @@ async function buildRuntimeAgentTerminalStartupOptions(
     throw new Error(`Agent ${agent} does not take a startup prompt on its launch command.`)
   }
   const scope = {
-    inputs: resolveAgentStartupPlanInputs({
-      agent,
-      settings,
-      platform: runtime.platform,
-      isRemote,
-      ...(opts.agentArgs !== undefined ? { agentArgs: opts.agentArgs } : {}),
-      shell: agentLaunchQuotingShell(runtime),
-      sessionOptions: host.toSessionOptions(opts.launchPreferences),
-      ...(opts.suppressStartupUpdatePrompt ? { suppressStartupUpdatePrompt: true } : {})
-    }),
+    inputs: resolveWslHostAgentLaunchInputs(
+      resolveAgentStartupPlanInputs({
+        agent,
+        settings,
+        platform: runtime.platform,
+        isRemote,
+        ...(opts.agentArgs !== undefined ? { agentArgs: opts.agentArgs } : {}),
+        shell: agentLaunchQuotingShell(runtime),
+        sessionOptions: host.toSessionOptions(opts.launchPreferences),
+        ...(opts.suppressStartupUpdatePrompt ? { suppressStartupUpdatePrompt: true } : {})
+      }),
+      opts.env?.PATH
+    ),
     prompt: opts.startupPrompt ?? '',
     cwd: resolveTerminalStartupCwd(workspace.path, opts.cwd) ?? workspace.path,
     hostIdentity: host.hostIdentity,
