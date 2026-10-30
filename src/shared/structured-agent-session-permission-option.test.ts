@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { AgentSessionOptionsResult } from './agent-session-wire'
 import { sortNativeChatSessionOptions } from './native-chat/input/native-chat-session-option-snapshot'
 import {
+  canSetStructuredAgentSessionOption,
   applyStructuredAgentSessionOptions,
   createStructuredAgentSessionOptionState,
   structuredAgentSessionOptionPicks,
@@ -36,7 +37,7 @@ function live(agent: string, current: AgentSessionOptionsResult['current'], auto
 }
 
 describe('the permission mode picker', () => {
-  it('keeps old-host fallback while capable hosts display only the nullable report', () => {
+  it('shows the saved mode until a report, except for own, which waits for the report', () => {
     const pr1 = live('codex', { permissionMode: 'ask' })
     expect(permission({ ...pr1, permissionOwnSupported: null })?.settable).toBe(false)
     expect(permission({ ...pr1, permissionOwnSupported: false })).toMatchObject({
@@ -54,41 +55,52 @@ describe('the permission mode picker', () => {
         }
       })
     }
+    // A resumed chat with no running agent shows its saved mode and can change it.
+    expect(permission({ ...capable, permissionMode: 'full-access' })).toMatchObject({
+      settable: true,
+      valueSource: 'applied',
+      kind: { currentValue: 'full-access' }
+    })
     expect(
-      permission({ ...capable, permissionMode: 'ask', runtimePermissionRequired: true })?.settable
+      permission({ ...capable, permissionMode: 'full-access', reportedPermissionMode: null })
+    ).toMatchObject({ settable: false, kind: { currentValue: undefined } })
+  })
+
+  it('admits supported Own reset through the same descriptor/readiness predicate', () => {
+    const state = { ...live('codex', { permissionMode: 'ask' }), permissionOwnSupported: true }
+    expect(canSetStructuredAgentSessionOption(state, 'permissionMode', 'own')).toBe(true)
+    for (const permissionOwnSupported of [false, null]) {
+      const unsupported = { ...state, permissionOwnSupported }
+      expect(canSetStructuredAgentSessionOption(unsupported, 'permissionMode', 'own')).toBe(false)
+      expect(canSetStructuredAgentSessionOption(unsupported, 'permissionMode', 'full-access')).toBe(
+        permissionOwnSupported === false
+      )
+    }
+    expect(canSetStructuredAgentSessionOption(state, 'permissionMode', 'invalid')).toBe(false)
+    expect(canSetStructuredAgentSessionOption(state, 'permissionMode', 'own', [], true)).toBe(false)
+    expect(
+      canSetStructuredAgentSessionOption(
+        state,
+        'permissionMode',
+        'own',
+        structuredAgentSessionOptionSnapshot(state),
+        false
+      )
     ).toBe(false)
-  })
-
-  it('uses an explicit saved mode while the capable host has no running provider', () => {
-    const state = live('zcode', { permissionMode: 'full-access' })
-
-    expect(permission({ ...state, permissionOwnSupported: true })).toMatchObject({
-      description: 'Full access',
-      settable: true,
-      kind: { currentValue: 'full-access' },
-      valueSource: 'applied'
-    })
     expect(
-      permission({ ...state, permissionOwnSupported: true, runtimePermissionRequired: true })
-    ).toMatchObject({ description: 'Permissions', settable: false })
-  })
-
-  it('enables ZCode permissions when the app-server reports its session mode', () => {
-    const state = live('zcode', {
-      permissionMode: 'own',
-      reportedPermissionMode: 'full-access'
-    })
-
-    expect(permission({ ...state, permissionOwnSupported: true })).toMatchObject({
-      settable: true,
-      kind: {
-        currentValue: 'full-access',
-        choices: [
-          expect.objectContaining({ value: 'ask' }),
-          expect.objectContaining({ value: 'full-access' })
-        ]
-      }
-    })
+      canSetStructuredAgentSessionOption(
+        { ...state, pendingId: 'permissionMode' },
+        'permissionMode',
+        'own'
+      )
+    ).toBe(false)
+    expect(
+      canSetStructuredAgentSessionOption(
+        { ...state, reportedPermissionMode: null },
+        'permissionMode',
+        'own'
+      )
+    ).toBe(false)
   })
 
   it('shows the seeded mode before the agent starts, beside the quiet model pill', () => {

@@ -218,17 +218,6 @@ export class ZcodeStructuredSessionAdapter implements StructuredAgentSessionAdap
     return composeZcodeLiveOptions(child, await readZcodeLiveSnapshot(child))
   }
 
-  prepareReadOptions: NonNullable<StructuredAgentSessionAdapter['prepareReadOptions']> = ({
-    sessionId
-  }) => {
-    const child = this.children.get(sessionId)
-    if (!child || child.ended) {
-      return undefined
-    }
-    const fetched = readZcodeLiveSnapshot(child)
-    return fetched.then((snapshot) => () => composeZcodeLiveOptions(child, snapshot))
-  }
-
   readOptionRestoreFailures = (sessionId: string): readonly string[] =>
     Array.from(this.children.get(sessionId)?.optionRestoreFailures ?? [])
 

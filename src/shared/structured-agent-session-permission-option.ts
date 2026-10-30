@@ -1,4 +1,4 @@
-// Show host-stated permission mode; never infer what is running.
+// A live agent's report wins; otherwise the chat's saved mode, never a guessed one for own.
 
 import {
   AGENT_CHAT_PERMISSION_MODE_OPTION_ID,
@@ -56,19 +56,19 @@ export function structuredAgentSessionPermissionDescriptor(state: {
   permissionMode: string | null
   permissionOwnSupported?: boolean | null
   reportedPermissionMode?: string | null
-  runtimePermissionRequired?: boolean
 }): SessionOptionDescriptor | null {
   const support = agentChatPermissionModes(state.record.agent)
   const own = state.permissionMode === 'own'
   if (!support || (!own && !support.modes.some((mode) => mode === state.permissionMode))) {
     return null
   }
+  // Without a report an explicit chat shows the saved mode its next turn applies; own has none.
   const current =
-    state.reportedPermissionMode === undefined &&
-    !own &&
-    (state.permissionOwnSupported !== true || state.runtimePermissionRequired !== true)
-      ? (state.permissionMode ?? undefined)
-      : (state.reportedPermissionMode ?? undefined)
+    state.reportedPermissionMode !== undefined
+      ? (state.reportedPermissionMode ?? undefined)
+      : own
+        ? undefined
+        : (state.permissionMode ?? undefined)
   const reported = support.modes.find((mode) => mode === current)
   const label = reported
     ? MODE_COPY[reported].label

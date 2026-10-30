@@ -101,10 +101,10 @@ export function resolveZcodeLaunchCommand(
     homePath?: string
     officialRuntime?: ZcodeOfficialRuntimeDeps
   } = {}
-): { command: string; args: string[]; envOverlay?: Record<string, string> } {
+): { command: string; args: string[]; prefixArgs: string[]; envOverlay?: Record<string, string> } {
   const override = env.ZCODE_AGENT_SERVER_COMMAND?.trim()
   if (override) {
-    return { command: override, args: agentServerArgs(env) }
+    return { command: override, args: agentServerArgs(env), prefixArgs: [] }
   }
   const invocation = resolveZcodeCliInvocation({
     commandSettings: options.commandSettings,
@@ -124,6 +124,7 @@ export function resolveZcodeLaunchCommand(
   }
   return {
     command: invocation.command,
+    prefixArgs: invocation.prefixArgs,
     args: [...invocation.prefixArgs, 'app-server', '--stdio', '--surface', 'desktop'],
     ...(Object.keys(envOverlay).length > 0 ? { envOverlay } : {})
   }

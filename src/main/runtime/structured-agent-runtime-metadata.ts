@@ -48,7 +48,7 @@ function acpChatProgram(spec: AcpLaunchSpec): StructuredAgentChatProgram {
     resolve: (shellEnv, commandSettings) => {
       const env = { ...shellEnv, ...spec.env }
       const options = { commandSettings, dataDirectory: getProfileUserDataPath() }
-      return { command: resolveAcpLaunchCommand(spec, env, options), env }
+      return { ...resolveAcpLaunchCommand(spec, env, options), env }
     },
     ...(managedRuntime ? { installable: () => managedRuntime.pin() !== null } : {})
   }
@@ -60,7 +60,20 @@ function cliChatProgram(agent: 'claude' | 'codex'): StructuredAgentChatProgram {
       const homePath = env.HOME ?? env.USERPROFILE
       const pathEnv = env.PATH ?? env.Path ?? null
       const options = { pathEnv, ...(homePath ? { homePath } : {}) }
-      return { command: resolveStructuredAgentCommand(agent, commandSettings, options), env }
+      return { ...resolveStructuredAgentCommand(agent, commandSettings, options), env }
+    }
+  }
+}
+
+function zcodeChatProgram(): StructuredAgentChatProgram {
+  return {
+    resolve: (env, commandSettings) => {
+      const launch = resolveZcodeLaunchCommand(env, { commandSettings })
+      return {
+        command: launch.command,
+        prefixArgs: launch.prefixArgs,
+        env: { ...env, ...launch.envOverlay }
+      }
     }
   }
 }
@@ -85,11 +98,11 @@ function acpMetadata(spec: AcpLaunchSpec): StructuredAgentRuntimeMetadata {
           launchCheck: {
             resolveLaunch: (shellEnv, commandSettings) => {
               const env = { ...shellEnv, ...spec.env }
-              const command = resolveAcpLaunchCommand(spec, env, {
+              const invocation = resolveAcpLaunchCommand(spec, env, {
                 commandSettings,
                 dataDirectory: null
               })
-              return { command, env }
+              return { ...invocation, env }
             },
             minimumVersions
           }
