@@ -13,7 +13,12 @@ it('admits a mobile ZCode reset-credit request through the RPC surface', async (
   server['deviceRegistry'] = new DeviceRegistry(userDataPath)
   const mobile = server['deviceRegistry']!.addDevice('phone', 'mobile')
   await server['handleWebSocketMessage'](
-    JSON.stringify({ id: 'req_consume_zcode_reset', method: 'accounts.consumeZcodeResetCredit', deviceToken: mobile.token, params: { resetType: 'FIVE_HOUR' } }),
+    JSON.stringify({
+      id: 'req_consume_zcode_reset',
+      method: 'accounts.consumeZcodeResetCredit',
+      deviceToken: mobile.token,
+      params: { resetType: 'FIVE_HOUR' }
+    }),
     () => {},
     () => {}
   )
