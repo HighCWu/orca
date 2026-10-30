@@ -78,15 +78,6 @@ function zcodeChatProgram(): StructuredAgentChatProgram {
   }
 }
 
-function zcodeChatProgram(): StructuredAgentChatProgram {
-  return {
-    resolve: (env, commandSettings) => {
-      const launch = resolveZcodeLaunchCommand(env, { commandSettings })
-      return { command: launch.command, env: { ...env, ...launch.envOverlay } }
-    }
-  }
-}
-
 function acpMetadata(spec: AcpLaunchSpec): StructuredAgentRuntimeMetadata {
   const { minimumVersions } = spec
   return {
