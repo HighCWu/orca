@@ -161,7 +161,11 @@ describe('zcode usage scanner', () => {
     const reused = await scanZcodeUsageDatabases([], [marker], undefined)
     expect(reused.sessions.map((session) => session.sessionId)).toEqual(['session_marker'])
 
-    utimesSync(dbPath, new Date(), new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 5_000))
+    utimesSync(
+      dbPath,
+      new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS),
+      new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 5_000)
+    )
     const reparsed = await scanZcodeUsageDatabases([], [marker], undefined)
     expect(reparsed.sessions).toEqual(first.sessions)
 
@@ -208,7 +212,11 @@ describe('zcode usage scanner', () => {
   it('keeps the last good snapshot when a changed database is temporarily unreadable', async () => {
     const first = await scanZcodeUsageDatabases([], [], undefined)
     writeFileSync(dbPath, 'not a sqlite database')
-    utimesSync(dbPath, new Date(), new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 10_000))
+    utimesSync(
+      dbPath,
+      new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS),
+      new Date(ZCODE_USAGE_FIXTURE_EPOCH_MS + 10_000)
+    )
 
     const stale = await scanZcodeUsageDatabases([], first.processedDatabases, undefined)
 
