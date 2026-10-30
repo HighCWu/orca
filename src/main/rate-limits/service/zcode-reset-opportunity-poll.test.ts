@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as ZcodeResetCreditsModule from '../../zcode/zcode-reset-credits'
 import {
   requestZcodeResetOpportunity,
@@ -21,7 +21,11 @@ function state(accountId: string | null = null): ZcodeResetOpportunityPollState 
   return { accountId, nextCheckAt: 0, retryIdempotencyKey: null, inFlight: null }
 }
 
+afterEach(() => vi.useRealTimers())
+
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(NOW)
   vi.mocked(requestZcodeResetOpportunity).mockReset()
 })
 
@@ -73,6 +77,7 @@ describe('zcode reset opportunity cooldown', () => {
     const poll = state()
     const first = pollZcodeResetOpportunity(poll, undefined, () => accountId)
     await vi.waitFor(() => expect(requestZcodeResetOpportunity).toHaveBeenCalledOnce())
+    vi.setSystemTime(NOW)
     accountId = 'account-b'
     const switched = pollZcodeResetOpportunity(poll, undefined, () => accountId)
     resolve({ granted: true })
@@ -81,7 +86,7 @@ describe('zcode reset opportunity cooldown', () => {
     expect(requestZcodeResetOpportunity).toHaveBeenCalledTimes(2)
     expect(vi.mocked(requestZcodeResetOpportunity).mock.calls[1]?.[0].accountId).toBe('account-b')
     expect(poll.accountId).toBe('account-b')
-    expect(poll.nextCheckAt).toBeGreaterThan(Date.now())
+    expect(poll.nextCheckAt).toBe(NOW + 10 * 60_000)
     expect(poll.retryIdempotencyKey).toBeNull()
   })
 

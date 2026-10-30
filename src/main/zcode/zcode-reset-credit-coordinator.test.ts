@@ -93,18 +93,25 @@ describe('zcode reset credit coordinator', () => {
 
   it('answers concurrent calls with one provider operation under one key', async () => {
     const store = fakeStore()
+    let finish!: () => void
     const service = fakeService(
-      () => new Promise((resolve) => setTimeout(() => resolve(createEmptyRateLimitState()), 5))
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve(createEmptyRateLimitState())
+        })
     )
     const coordinator = new ZcodeResetCreditCoordinator({
       store,
       rateLimits: service,
       readAccountId: () => 'account-a'
     })
-    await Promise.all([
+    const pending = [
       coordinator.consumeCurrent('FIVE_HOUR'),
       coordinator.consumeCurrent('FIVE_HOUR')
-    ])
+    ]
+    await vi.waitFor(() => expect(service.consumeZcodeResetCredit).toHaveBeenCalledTimes(1))
+    finish()
+    await Promise.all(pending)
     expect(service.consumeZcodeResetCredit).toHaveBeenCalledTimes(1)
     expect(store.history.at(-1)?.pending).toEqual([])
   })
