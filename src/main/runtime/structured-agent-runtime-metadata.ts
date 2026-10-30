@@ -69,7 +69,11 @@ function zcodeChatProgram(): StructuredAgentChatProgram {
   return {
     resolve: (env, commandSettings) => {
       const launch = resolveZcodeLaunchCommand(env, { commandSettings })
-      return { command: launch.command, env: { ...env, ...launch.envOverlay } }
+      return {
+        command: launch.command,
+        prefixArgs: launch.prefixArgs,
+        env: { ...env, ...launch.envOverlay }
+      }
     }
   }
 }

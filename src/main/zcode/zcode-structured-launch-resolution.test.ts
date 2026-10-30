@@ -18,6 +18,7 @@ describe('resolveZcodeLaunchCommand', () => {
       resolveZcodeLaunchCommand({}, { resolveCommand: () => 'zcode', officialRuntime })
     ).toEqual({
       command: '/opt/ZCode/zcode',
+      prefixArgs: ['/opt/ZCode/resources/glm/zcode.cjs'],
       args: ['/opt/ZCode/resources/glm/zcode.cjs', 'app-server', '--stdio', '--surface', 'desktop'],
       envOverlay: {
         ELECTRON_RUN_AS_NODE: '1',
@@ -53,6 +54,7 @@ describe('resolveZcodeLaunchCommand', () => {
       )
     ).toEqual({
       command: '/home/test/.local/bin/zcode',
+      prefixArgs: [],
       args: ['app-server', '--stdio', '--surface', 'desktop']
     })
   })
@@ -78,6 +80,7 @@ describe('resolveZcodeLaunchCommand', () => {
       })
     ).toEqual({
       command: '/custom/zcode-server',
+      prefixArgs: [],
       args: [...retained, '--surface', 'desktop']
     })
   })

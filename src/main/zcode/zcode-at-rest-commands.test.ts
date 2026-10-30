@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { agentSessionRecordFixture } from '../../shared/agent-session-record.test-fixture'
 import type { ZcodeAgentConnection } from './zcode-protocol-connection'
@@ -21,11 +24,12 @@ function connection(request: ZcodeAgentConnection['request']): ZcodeAgentConnect
 
 describe('zcode at-rest command catalog', () => {
   it('launches the scratch app-server in the resolved workspace directory', async () => {
+    const workspace = await mkdtemp(join(tmpdir(), 'orca-zcode-at-rest-'))
     const request = vi.fn(async () => ({ slashCommands: [] }))
     const connected = connection(request)
     const connect = vi.fn(() => connected)
     const catalog = new ZcodeAtRestCommandCatalog({
-      resolveWorkspacePath: async () => '/workspace/folder',
+      resolveWorkspacePath: async () => workspace,
       resolveInvocation: async () => ({
         command: 'zcode',
         args: ['app-server'],
@@ -42,19 +46,24 @@ describe('zcode at-rest command catalog', () => {
       location: { ...base.location, workspaceId: 'workspace-key' }
     }
 
-    catalog.read(record)
-    await vi.waitFor(() => expect(connect).toHaveBeenCalled())
+    try {
+      catalog.read(record)
+      await vi.waitFor(() => expect(connect).toHaveBeenCalled())
 
-    expect(connect).toHaveBeenCalledWith({
-      command: 'zcode',
-      args: ['app-server'],
-      env: { ZCODE_DATA_BASE_DIR: '/account' },
-      envToDelete: ['ORCA_PANE_KEY'],
-      cwd: '/workspace/folder'
-    })
-    expect(request).toHaveBeenCalledWith('workspace/readPresentation', {
-      workspace: { workspacePath: '/workspace/folder', workspaceKey: 'workspace-key' }
-    })
-    expect(connected.close).toHaveBeenCalled()
+      expect(connect).toHaveBeenCalledWith({
+        command: 'zcode',
+        args: ['app-server'],
+        env: { ZCODE_DATA_BASE_DIR: '/account' },
+        envToDelete: ['ORCA_PANE_KEY'],
+        cwd: workspace
+      })
+      expect(request).toHaveBeenCalledWith('workspace/readPresentation', {
+        workspace: { workspacePath: workspace, workspaceKey: 'workspace-key' }
+      })
+      expect(connected.close).toHaveBeenCalled()
+    } finally {
+      catalog.dispose()
+      await rm(workspace, { recursive: true, force: true })
+    }
   })
 })
