@@ -2,7 +2,7 @@ import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { readZcodeUsageCredentials } from './zcode-usage-credentials'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderRateLimits } from '../../shared/rate-limit-types'
 import { RateLimitService } from './service'
 import { fetchClaudeRateLimits } from './claude-fetcher'
@@ -92,8 +92,14 @@ vi.mock('../zcode/zcode-plan-api-key-store', () => ({
   clearZcodePlanApiKey: vi.fn()
 }))
 
+const NOW = 1_792_800_000_000
+
+afterEach(() => vi.useRealTimers())
+
 describe('RateLimitService zcode plan credentials', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(NOW)
     resetRateLimitProviderMocks()
     vi.mocked(fetchClaudeRateLimits).mockResolvedValue(okProvider('claude', 7))
     vi.mocked(fetchCodexRateLimits).mockResolvedValue(okProvider('codex', 20))
@@ -103,7 +109,7 @@ describe('RateLimitService zcode plan credentials', () => {
     const service = new RateLimitService()
     service.setZcodePlanConfigResolver(() => ({ site: 'bigmodel', apiKey: 'glm-key' }))
     vi.mocked(hasZcodePlanApiKey).mockReturnValue(true)
-    vi.mocked(fetchZcodeRateLimits).mockResolvedValueOnce(okProvider('zcode', 33, Date.now()))
+    vi.mocked(fetchZcodeRateLimits).mockResolvedValueOnce(okProvider('zcode', 33, NOW))
 
     await service.refresh()
 
@@ -127,15 +133,15 @@ describe('RateLimitService zcode plan credentials', () => {
     vi.mocked(fetchZcodeRateLimits)
       .mockImplementationOnce(async () => {
         expect(requestZcodeResetOpportunity).not.toHaveBeenCalled()
-        return okProvider('zcode', 12, Date.now())
+        return okProvider('zcode', 12, NOW)
       })
       .mockImplementationOnce(async () => {
         expect(requestZcodeResetOpportunity).toHaveBeenCalledTimes(1)
         return {
-          ...okProvider('zcode', 12, Date.now()),
+          ...okProvider('zcode', 12, NOW),
           rateLimitResetCredits: {
             availableCount: 1,
-            nextExpiresAt: Date.now() + 60_000,
+            nextExpiresAt: NOW + 60_000,
             credits: []
           }
         }
@@ -173,7 +179,7 @@ describe('RateLimitService zcode plan credentials', () => {
     let site: 'zai' | 'bigmodel' = 'zai'
     service.setZcodePlanConfigResolver(() => ({ site, apiKey: 'glm-key' }))
     vi.mocked(fetchZcodeRateLimits)
-      .mockResolvedValueOnce(okProvider('zcode', 40, Date.now()))
+      .mockResolvedValueOnce(okProvider('zcode', 40, NOW))
       .mockRejectedValueOnce(new Error('Zcode quota request failed (401)'))
 
     await service.refresh()
@@ -207,13 +213,13 @@ describe('RateLimitService zcode plan credentials', () => {
     const queuedRefresh = service.refresh()
     await Promise.resolve()
 
-    firstZcode.resolve(okProvider('zcode', 50, Date.now()))
+    firstZcode.resolve(okProvider('zcode', 50, NOW))
     await vi.waitFor(() => expect(fetchZcodeRateLimits).toHaveBeenCalledTimes(2))
 
     expect(service.getState().zcode?.status).toBe('fetching')
     expect(service.getState().zcode?.session).toBeNull()
 
-    secondZcode.resolve(okProvider('zcode', 10, Date.now()))
+    secondZcode.resolve(okProvider('zcode', 10, NOW))
     await firstRefresh
     await queuedRefresh
 
@@ -238,7 +244,7 @@ describe('RateLimitService zcode plan credentials', () => {
       const claude = deferred<ProviderRateLimits>()
       vi.mocked(fetchClaudeRateLimits).mockImplementationOnce(() => claude.promise)
       vi.mocked(fetchZcodeRateLimits).mockResolvedValueOnce({
-        ...okProvider('zcode', 44, Date.now()),
+        ...okProvider('zcode', 44, NOW),
         usageMetadata: {
           authProvenance: selected.credentials.authProvenance,
           credentialSource: selected.source
