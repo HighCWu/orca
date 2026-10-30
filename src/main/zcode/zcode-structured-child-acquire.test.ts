@@ -214,7 +214,10 @@ describe('zcode structured child acquisition', () => {
     tempDirs.push(home)
     const v2 = join(home, '.zcode', 'v2')
     mkdirSync(v2, { recursive: true })
-    writeFileSync(join(v2, 'provider_config.json'), JSON.stringify({ schemaVersion: 1, config: {} }))
+    writeFileSync(
+      join(v2, 'provider_config.json'),
+      JSON.stringify({ schemaVersion: 1, config: {} })
+    )
     writeFileSync(
       join(v2, 'credentials.json'),
       JSON.stringify({

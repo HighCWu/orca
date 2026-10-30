@@ -1,8 +1,5 @@
 import { BoundedMap } from '../../shared/bounded-map'
-import {
-  UNVERIFIABLE_TURN_VERDICT,
-  type StructuredAgentSessionTurnVerdict
-} from '../native-chat/agent-session-wire/structured-agent-session-stale-turn-verdict'
+import { UNVERIFIABLE_TURN_VERDICT } from '../native-chat/agent-session-wire/structured-agent-session-stale-turn-verdict'
 import type { ProviderTimelineEvent } from '../native-chat/agent-session-timeline/provider-timeline-event'
 import { agentSessionFailureFact } from '../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../shared/agent-session-failure-words'
@@ -295,9 +292,9 @@ export class ZcodeTimelineTranslator {
 
   /** The task ids a stop may name, running ones first. */
   runningBackgroundTaskIds(): string[] {
-    return [...this.backgroundTasks.entries()]
-      .filter(([, task]) => task.state === 'working')
-      .map(([taskId]) => taskId)
+    return [...this.backgroundTasks.entries()].flatMap(([taskId, task]) =>
+      task.state === 'working' ? [taskId] : []
+    )
   }
 
   /** The provider session is gone: everything still open settles as unverifiable. */
@@ -309,8 +306,7 @@ export class ZcodeTimelineTranslator {
     }
     this.openTurns.clear()
     this.pending = undefined
-    const verdict: StructuredAgentSessionTurnVerdict = UNVERIFIABLE_TURN_VERDICT
-    events.push({ type: 'session.ended', verdict, endedAt: at })
+    events.push({ type: 'session.ended', verdict: UNVERIFIABLE_TURN_VERDICT, endedAt: at })
     return events
   }
 
