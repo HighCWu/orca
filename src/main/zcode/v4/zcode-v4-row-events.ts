@@ -5,10 +5,8 @@ import {
   zcodeV4TerminalTurnOutcome,
   zcodeV4ToolBody
 } from './zcode-v4-row-event-bodies'
-import {
-  agentSessionFailureFact,
-  ZCODE_RATE_LIMIT_CODES
-} from '../../../shared/agent-session-failure'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { ZCODE_RATE_LIMIT_CODES } from '../zcode-rate-limit-codes'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import { TUI_AGENT_DISPLAY_NAMES } from '../../../shared/tui-agent-display-names'
 import type { AgentChildWorkEvidence } from '../../../shared/agent-status-child-work-evidence'
