@@ -274,6 +274,20 @@
       "loadingAccounts": "Loading accounts…",
       "manageAccountsHint": "Add or re-authenticate accounts from desktop Settings → Accounts.",
       "useReset": "Use reset"
+    },
+    "zcode": {
+      "title": "GLM Coding Plan",
+      "fiveHour": "5h",
+      "weekly": "7d",
+      "resetSubtitle": "GLM Coding Plan rate-limit reset",
+      "useReset": "Use GLM rate-limit reset",
+      "resetting": "Resetting GLM rate-limit reset",
+      "resetHint": "Spends one rate-limit reset on this account's five-hour window",
+      "weeklyResetSubtitle": "GLM Coding Plan weekly rate-limit reset",
+      "useWeeklyReset": "Use GLM weekly rate-limit reset",
+      "resettingWeekly": "Resetting GLM weekly rate-limit reset",
+      "weeklyResetHint": "Spends one weekly rate-limit reset on this account's weekly window",
+      "confirmReset": "Use reset"
     }
   },
   "agentHistory": {
@@ -1235,7 +1249,8 @@
       "children_other": "{{count}} children"
     },
     "accountsSnapshot": {
-      "invalidSnapshot": "Invalid accounts snapshot from host"
+      "invalidSnapshot": "Invalid accounts snapshot from host",
+      "zcodeProviderMismatch": "GLM Coding Plan limits use the wrong provider identity"
     },
     "codexResetCredit": {
       "available_one": "{{count}} reset available",
@@ -1289,6 +1304,16 @@
       "title": "Something went wrong",
       "tryAgain": "Try again",
       "home": "Home"
+    },
+    "zcodeResetCredit": {
+      "failed": "Could not use the rate-limit reset",
+      "confirmWeekly": "Use a weekly rate-limit reset?",
+      "confirmWeeklyMessage": "This spends one GLM Coding Plan weekly rate-limit reset on this account and resets its weekly usage window immediately.",
+      "confirm": "Use a rate-limit reset?",
+      "confirmMessage": "This spends one GLM Coding Plan rate-limit reset on this account and resets its five-hour usage window immediately.",
+      "success": "Rate limits reset",
+      "weeklySuccess": "The weekly usage window has been reset.",
+      "fiveHourSuccess": "The five-hour usage window has been reset."
     }
   },
   "pullRequest": {
