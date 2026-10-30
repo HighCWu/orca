@@ -60,7 +60,7 @@ describe('useZcodeResetCreditCapability', () => {
     )
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the probe only reads the client's identity across reconnects; the mocked sendRequest is the one member the probe can reach.
     const client = { sendRequest: vi.fn() } as unknown as RpcClient
-    let renderer: ReactTestRenderer | null = null
+    let renderer: ReactTestRenderer
 
     function CapabilityResult(_props: { supported: boolean }) {
       return null
