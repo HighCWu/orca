@@ -1,6 +1,9 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import { RotateCcw } from 'lucide-react-native'
+import { useMobileTranslation } from '../i18n/use-mobile-translation'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import { themedStyleSheet } from '../theme/themed-styles'
+import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
 import type { CodexResetCreditSummary } from './codex-reset-credit'
 
 /** The provider-neutral reset-inventory row; each feature names its own subject in the labels. */
@@ -28,6 +31,8 @@ export function ResetCreditAction({
   disabled: boolean
   onPress: () => void
 }) {
+  const t = useMobileTranslation()
+  useMobileColorScheme()
   return (
     <>
       <View style={styles.separator} />
@@ -48,7 +53,15 @@ export function ResetCreditAction({
           disabled={disabled}
           accessibilityRole="button"
           accessibilityLabel={busy ? busyA11yLabel : useA11yLabel}
-          accessibilityHint={scopeLabel ? `Uses one earned reset for ${scopeLabel}` : hintFallback}
+          accessibilityHint={
+            scopeLabel
+              ? t(
+                  'components.codexResetCreditAction.scopedHint',
+                  'Uses one earned reset for {{scopeLabel}}',
+                  { scopeLabel }
+                )
+              : hintFallback
+          }
           accessibilityState={{ busy, disabled }}
           hitSlop={8}
         >
@@ -57,14 +70,18 @@ export function ResetCreditAction({
           ) : (
             <RotateCcw size={14} color={colors.textPrimary} />
           )}
-          <Text style={styles.buttonText}>{busy ? 'Resetting…' : 'Use reset'}</Text>
+          <Text style={styles.buttonText}>
+            {busy
+              ? t('components.codexResetCreditAction.resetting', 'Resetting…')
+              : t('components.codexResetCreditAction.useReset', 'Use reset')}
+          </Text>
         </Pressable>
       </View>
     </>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyleSheet(() => ({
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.borderSubtle,
@@ -114,4 +131,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary
   }
-})
+}))

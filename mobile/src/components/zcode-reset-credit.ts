@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { translate } from '../i18n/mobile-i18n'
 import { formatResetCountdown } from '../../../src/shared/rate-limit-reset-format'
 import {
   decodeAccountsSnapshot,
@@ -73,8 +74,20 @@ export function getZcodeResetCreditSuccessCopy(resetType: ZcodeResetCreditType):
   message: string
 } {
   return resetType === 'WEEK'
-    ? { title: 'Rate limits reset', message: 'The weekly usage window has been reset.' }
-    : { title: 'Rate limits reset', message: 'The five-hour usage window has been reset.' }
+    ? {
+        title: translate('components.zcodeResetCredit.success', 'Rate limits reset'),
+        message: translate(
+          'components.zcodeResetCredit.weeklySuccess',
+          'The weekly usage window has been reset.'
+        )
+      }
+    : {
+        title: translate('components.zcodeResetCredit.success', 'Rate limits reset'),
+        message: translate(
+          'components.zcodeResetCredit.fiveHourSuccess',
+          'The five-hour usage window has been reset.'
+        )
+      }
 }
 
 const zcodeResetResultSchema = z.looseObject({ snapshot: z.unknown() })

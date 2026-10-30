@@ -209,7 +209,10 @@ export const AccountsSnapshotSchema = z
     if (snapshot.rateLimits.zcode && snapshot.rateLimits.zcode.provider !== 'zcode') {
       context.addIssue({
         code: 'custom',
-        message: 'GLM Coding Plan limits use the wrong provider identity',
+        message: translate(
+          'components.accountsSnapshot.zcodeProviderMismatch',
+          'GLM Coding Plan limits use the wrong provider identity'
+        ),
         path: ['rateLimits', 'zcode', 'provider']
       })
     }

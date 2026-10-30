@@ -2,7 +2,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { ChevronLeft, Check, RefreshCw, User } from 'lucide-react-native'
+import { ChevronLeft, Check, RefreshCw } from 'lucide-react-native'
+import { AccountManagementHint } from './account-management-hint'
+import { AccountsScreenTitle } from './accounts-screen-title'
 import { loadHosts } from '../transport/host-store'
 import { useHostClient } from '../transport/host-client-hooks'
 import { colors, spacing } from '../theme/mobile-theme'
@@ -337,14 +339,7 @@ export function MobileAccountsScreen() {
         >
           <ChevronLeft size={22} color={colors.textPrimary} />
         </Pressable>
-        <View style={styles.titleWrap}>
-          <Text style={styles.heading}>{t('accounts.screen.title', 'Accounts')}</Text>
-          {hostName ? (
-            <Text style={styles.subheading} numberOfLines={1}>
-              {hostName}
-            </Text>
-          ) : null}
-        </View>
+        <AccountsScreenTitle hostName={hostName} />
         <Pressable
           style={styles.iconButton}
           onPress={refresh}
@@ -397,15 +392,7 @@ export function MobileAccountsScreen() {
               onSnapshot={acceptSnapshot}
               onNotice={setNotice}
             />
-            <View style={styles.footerHint}>
-              <User size={14} color={colors.textMuted} />
-              <Text style={styles.footerHintText}>
-                {t(
-                  'accounts.screen.manageAccountsHint',
-                  'Add or re-authenticate accounts from desktop Settings → Accounts.'
-                )}
-              </Text>
-            </View>
+            <AccountManagementHint />
           </>
         )}
       </ScrollView>

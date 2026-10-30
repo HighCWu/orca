@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { useMobileTranslation } from '../i18n/use-mobile-translation'
 import type { RpcClient } from '../transport/rpc-client'
 import type { AccountsSnapshot } from './account-usage-state'
 import {
@@ -31,6 +32,7 @@ export function useZcodeResetCreditAction({
   acceptReset: () => void
   cancelReset: () => void
 } {
+  const t = useMobileTranslation()
   const supported = useZcodeResetCreditCapability(client, connected)
   const [resetting, setResetting] = useState(false)
   const [confirming, setConfirming] = useState<ZcodeResetCreditType | null>(null)
@@ -48,7 +50,7 @@ export function useZcodeResetCreditAction({
         onNotice(getZcodeResetCreditSuccessCopy(resetType))
       } catch (error) {
         onNotice({
-          title: 'Could not use the rate-limit reset',
+          title: t('components.zcodeResetCredit.failed', 'Could not use the rate-limit reset'),
           message: error instanceof Error ? error.message : String(error)
         })
       } finally {
@@ -56,7 +58,7 @@ export function useZcodeResetCreditAction({
         setResetting(false)
       }
     },
-    [client, onNotice, onSnapshot]
+    [client, onNotice, onSnapshot, t]
   )
 
   const confirmReset = useCallback(
@@ -79,15 +81,19 @@ export function useZcodeResetCreditAction({
   const confirmation: ZcodeResetCreditDialog | null =
     confirming === 'WEEK'
       ? {
-          title: 'Use a weekly rate-limit reset?',
-          message:
+          title: t('components.zcodeResetCredit.confirmWeekly', 'Use a weekly rate-limit reset?'),
+          message: t(
+            'components.zcodeResetCredit.confirmWeeklyMessage',
             'This spends one GLM Coding Plan weekly rate-limit reset on this account and resets its weekly usage window immediately.'
+          )
         }
       : confirming === 'FIVE_HOUR'
         ? {
-            title: 'Use a rate-limit reset?',
-            message:
+            title: t('components.zcodeResetCredit.confirm', 'Use a rate-limit reset?'),
+            message: t(
+              'components.zcodeResetCredit.confirmMessage',
               'This spends one GLM Coding Plan rate-limit reset on this account and resets its five-hour usage window immediately.'
+            )
           }
         : null
 
