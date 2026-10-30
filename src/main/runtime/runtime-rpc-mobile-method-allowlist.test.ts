@@ -422,12 +422,6 @@ describe('OrcaRuntimeRpcServer', () => {
       }
     })
     await dispatch({
-      id: 'req_consume_zcode_reset',
-      method: 'accounts.consumeZcodeResetCredit',
-      deviceToken: mobile.token,
-      params: { resetType: 'FIVE_HOUR' }
-    })
-    await dispatch({
       id: 'req_remove_claude',
       method: 'accounts.removeClaude',
       deviceToken: mobile.token,
@@ -633,7 +627,6 @@ describe('OrcaRuntimeRpcServer', () => {
       '11111111-1111-4111-8111-111111111111',
       expectedCodexResetScope
     )
-    expect(mocks.consumeZcodeResetCredit).toHaveBeenCalledWith('FIVE_HOUR')
     expect(mocks.readTerminal).toHaveBeenCalledWith('term-1', { cursor: undefined })
     expect(mocks.getRuntimeGitStatus).toHaveBeenCalledWith('id:wt-1', { admissionTier: 'status' })
     expect(mocks.pushRuntimeGit).toHaveBeenCalledWith('id:wt-1', true, undefined, undefined)

@@ -1060,21 +1060,14 @@
       },
       "stats": {
         "UsageOverviewPane": {
-          "noLocalUsageYet": "No local Claude, Codex, OpenCode, or Muse usage found yet. The overview will populate after the next agent session writes token logs.",
           "sessionCount_one": "{{formatted}} session",
           "sessionCount_other": "{{formatted}} sessions"
-        },
-        "stats": {
-          "search": {
-            "26bb901fcd": "Orca stats plus Claude, Codex, OpenCode, Muse token analytics and Grok subscription usage."
-          }
         },
         "usage": {
           "overview": {
             "sections": {
               "eventCount_one": "{{formatted}} event",
               "eventCount_other": "{{formatted}} events",
-              "recentCombinedActivity": "Recent combined Claude, Codex, OpenCode, and Muse token activity.",
               "sessionCount_one": "{{formatted}} session",
               "sessionCount_other": "{{formatted}} sessions",
               "turnCount_one": "{{formatted}} turn",
@@ -1229,13 +1222,6 @@
                 "uploadingFilesToRemote_other": "Uploading {{count}} files to remote…",
                 "uploadingFiles_one": "Uploading {{count}} file to runtime…",
                 "uploadingFiles_other": "Uploading {{count}} files to runtime…"
-              }
-            }
-          },
-          "zcode": {
-            "missing": {
-              "tui": {
-                "description": "Orca's hooks installed correctly — the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Orca to confirm."
               }
             }
           }
