@@ -137,15 +137,12 @@ const RESET_SNAPSHOT = {
 } as const
 
 async function renderAccountsRoute(): Promise<ReactTestRenderer> {
-  let renderer: ReactTestRenderer | null = null
+  let renderer: ReactTestRenderer
   await act(async () => {
     renderer = create(createElement(MobileAccountsScreen))
     await Promise.resolve()
   })
-  if (!renderer) {
-    throw new Error('Accounts route did not render')
-  }
-  return renderer
+  return renderer!
 }
 
 function resetButtons(renderer: ReactTestRenderer) {
