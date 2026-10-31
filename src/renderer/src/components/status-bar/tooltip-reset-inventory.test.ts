@@ -31,11 +31,14 @@ describe('ProviderPanel reset inventory', () => {
   it.each([
     ['codex', '0 rate-limit resets available'],
     ['zcode', '0 five-hour rate-limit resets available']
-  ] as const)('distinguishes exhausted %s inventory from unavailable inventory', (provider, label) => {
-    const exhausted = inventoryMarkup(provider, 0)
-    expect(exhausted).toContain(label)
-    expect(exhausted).not.toContain('expires')
-    expect(exhausted).not.toContain('Expires')
-    expect(inventoryMarkup(provider, null)).not.toContain('resets available')
-  })
+  ] as const)(
+    'distinguishes exhausted %s inventory from unavailable inventory',
+    (provider, label) => {
+      const exhausted = inventoryMarkup(provider, 0)
+      expect(exhausted).toContain(label)
+      expect(exhausted).not.toContain('expires')
+      expect(exhausted).not.toContain('Expires')
+      expect(inventoryMarkup(provider, null)).not.toContain('resets available')
+    }
+  )
 })
