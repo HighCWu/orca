@@ -332,7 +332,7 @@ export function ProviderPanel({
           {name}
         </div>
         <div className={faintClass}>{updatedAgo}</div>
-        {resetCreditCount !== null && resetCreditCount !== undefined && resetCreditCount > 0 ? (
+        {resetCreditCount !== null && resetCreditCount !== undefined ? (
           <div className={mutedClass}>
             {p.provider === 'zcode'
               ? resetCreditCount === 1
