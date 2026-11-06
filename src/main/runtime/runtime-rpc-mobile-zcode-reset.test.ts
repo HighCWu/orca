@@ -2,9 +2,9 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
-import { OrcaRuntimeRpcServer } from './runtime-rpc'
-import { DeviceRegistry } from './device-registry'
-import { createMobileRpcSurfaceRuntime } from './runtime-rpc-mobile-method-allowlist-fixtures'
+import { OrcaRuntimeRpcServer } from './rpc/server/runtime-rpc'
+import { DeviceRegistry } from './rpc/server/pairing/device-registry'
+import { createMobileRpcSurfaceRuntime } from './rpc/server/runtime-rpc-mobile-method-allowlist-fixtures'
 
 it('admits a mobile ZCode reset-credit request through the RPC surface', async () => {
   const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))

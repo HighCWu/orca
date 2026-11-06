@@ -1,14 +1,10 @@
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import { useMobileTranslation } from '../i18n/use-mobile-translation'
 import type { RpcClient } from '../transport/rpc-client'
 import type { AccountsSnapshot } from '../components/account-usage-state'
-import {
-  getActiveProviderRateLimits,
-  getUsageBarState,
-  getWindowResetLabel,
-  hasActiveProviderUsage,
-  UsageBar
-} from '../components/AccountUsage'
+import { getActiveProviderRateLimits, hasActiveProviderUsage } from '../components/AccountUsage'
+import { ProviderUsageWindows } from './ProviderUsageWindows'
+import { ListGroup, ListRow, SectionHeader } from '../components/list/ListGroup'
 import {
   getZcodeResetCreditSummary,
   getZcodeWeeklyResetCreditSummary
@@ -53,33 +49,17 @@ export function ZcodeUsageSection({
   if (!snapshot || !hasActiveProviderUsage(activeUsage)) {
     return null
   }
-  const sessionBar = getUsageBarState(activeUsage, 'session')
-  const weeklyBar = getUsageBarState(activeUsage, 'weekly')
   const resetCard = getZcodeResetCreditSummary(activeUsage, now)
   const weeklyResetCredit = getZcodeWeeklyResetCreditSummary(activeUsage, now)
   return (
     <>
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeading}>{t('accounts.zcode.title', 'GLM Coding Plan')}</Text>
-        </View>
-        <View style={styles.card}>
-          <View style={styles.usageRow}>
-            <UsageBar
-              label={t('accounts.zcode.fiveHour', '5h')}
-              usedPercent={sessionBar.usedPercent}
-              unavailable={sessionBar.unavailable}
-              loading={sessionBar.loading}
-              resetText={getWindowResetLabel(activeUsage, 'session', now)}
-            />
-            <UsageBar
-              label={t('accounts.zcode.weekly', '7d')}
-              usedPercent={weeklyBar.usedPercent}
-              unavailable={weeklyBar.unavailable}
-              loading={weeklyBar.loading}
-              resetText={getWindowResetLabel(activeUsage, 'weekly', now)}
-            />
-          </View>
+      <View>
+        <SectionHeader title={t('accounts.zcode.title', 'GLM Coding Plan')} />
+        <ListGroup style={styles.group}>
+          <ListRow
+            title={t('accounts.zcode.title', 'GLM Coding Plan')}
+            detail={<ProviderUsageWindows limits={activeUsage} now={now} />}
+          />
           {resetCard && supported && connected ? (
             <ResetCreditAction
               summary={resetCard}
@@ -119,7 +99,7 @@ export function ZcodeUsageSection({
               onPress={() => confirmReset('WEEK')}
             />
           ) : null}
-        </View>
+        </ListGroup>
       </View>
       <ConfirmModal
         visible={confirmation !== null}
