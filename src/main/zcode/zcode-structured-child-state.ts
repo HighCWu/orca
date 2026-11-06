@@ -1,6 +1,6 @@
 import type { ProviderProcessLaunch } from '../provider-process/provider-process-launch'
 import type { StructuredAgentSessionProviderOpen } from '../native-chat/agent-session-wire/structured-agent-session-provider-open-contract'
-import type { AgentSessionModelOption } from '../../shared/agent-session-wire'
+import type { AgentSessionModelOption } from '../../shared/agent-session/agent-session-wire'
 import type { StructuredAgentSessionLogger } from '../native-chat/agent-session-wire/structured-agent-session-logger'
 import type { ZcodeAgentConnection, ZcodeAgentConnectionOptions } from './zcode-protocol-connection'
 import type { ZcodeV4ConversationChannel } from './v4/zcode-v4-conversation-channel'

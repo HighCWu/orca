@@ -3,8 +3,8 @@
 // and a resume reattaches the provider session the record proved.
 
 import { randomUUID } from 'node:crypto'
-import type { AgentSessionExecutionLocation } from '../../shared/agent-session-record'
-import type { AgentSessionBackgroundTaskStops } from '../../shared/agent-child-work-stop-targets'
+import type { AgentSessionExecutionLocation } from '../../shared/agent-session/lifecycle/agent-session-record'
+import type { AgentSessionBackgroundTaskStops } from '../../shared/agent-status/child-work/agent-child-work-stop-targets'
 import {
   AgentSessionAcquisitionExitProvenError,
   AgentSessionAcquisitionExitUnprovenError,

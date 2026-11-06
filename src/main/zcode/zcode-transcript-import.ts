@@ -4,7 +4,7 @@
 
 import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
-import { readOpenCodeTranscriptSignalViaWorker } from '../ai-vault/session-scanner-opencode-sqlite-worker-spawn'
+import { readOpenCodeTranscriptSignalViaWorker } from '../ai-vault/scanners/opencode/reader-transport/session-scanner-opencode-sqlite-worker-spawn'
 import { directoryTranscriptImport } from '../native-chat/structured-agent-cli-conversations'
 
 export const ZCODE_TRANSCRIPT_IMPORT = directoryTranscriptImport({

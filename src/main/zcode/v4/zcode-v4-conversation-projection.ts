@@ -14,7 +14,7 @@
 //   state.control.apiRetry       → activity line (the v3 streamRecovery analog)
 
 import type { ProviderTimelineEvent } from '../../native-chat/agent-session-timeline/provider-timeline-event'
-import type { AgentChildWorkEvidence } from '../../../shared/agent-status-child-work-evidence'
+import type { AgentChildWorkEvidence } from '../../../shared/agent-status/child-work/agent-status-child-work-evidence'
 import { zcodeV4ConversationLogicalFrameSchema } from './zcode-v4-conversation-frames'
 import type {
   ZcodeV4ConversationDelta,

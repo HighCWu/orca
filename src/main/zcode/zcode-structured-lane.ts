@@ -2,7 +2,7 @@
 // and the shared assembler writes them. Events apply strictly in order; one the sink refuses under
 // backpressure holds every later one until the sink drains, so nothing is reordered or dropped.
 
-import { parseAgentJournalItemKey } from '../../shared/agent-session-journal-item-key'
+import { parseAgentJournalItemKey } from '../../shared/agent-session/journal/agent-session-journal-item-key'
 import type { ProviderTimelineEvent } from '../native-chat/agent-session-timeline/provider-timeline-event'
 import {
   createProviderTimelineAssembler,

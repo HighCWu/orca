@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
-import { agentSessionFailureFact } from '../../shared/agent-session-failure'
-import { agentSessionFailureWords } from '../../shared/agent-session-failure-words'
-import type { AgentSessionExecutionOptions } from '../../shared/agent-session-execution-options'
+import { agentSessionFailureFact } from '../../shared/agent-session/failures/agent-session-failure'
+import { agentSessionFailureWords } from '../../shared/agent-session/failures/agent-session-failure-words'
+import type { AgentSessionExecutionOptions } from '../../shared/agent-session/options/agent-session-execution-options'
 import type {
   AgentSessionDispatchOutcome,
   StructuredAgentSessionAdapter

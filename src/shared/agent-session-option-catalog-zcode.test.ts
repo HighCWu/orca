@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getAgentSessionOptionCatalog } from './agent-session-option-catalog'
+import { getAgentSessionOptionCatalog } from './agent-session/options/agent-session-option-catalog'
 import { ZCODE_SESSION_OPTION_CATALOG } from './agent-session-option-catalog-zcode'
 
 describe('zcode session option catalog', () => {

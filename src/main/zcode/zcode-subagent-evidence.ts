@@ -2,7 +2,7 @@
 // subagent roster consumes. Repeated polls of an unchanged table publish nothing.
 
 import type { z } from 'zod'
-import type { AgentChildWorkEvidence } from '../../shared/agent-status-child-work-evidence'
+import type { AgentChildWorkEvidence } from '../../shared/agent-status/child-work/agent-status-child-work-evidence'
 import type { zcodeSessionSubagentSchema } from './zcode-protocol-messages'
 import { zcodeSessionSubagentsResultSchema } from './zcode-protocol-messages'
 

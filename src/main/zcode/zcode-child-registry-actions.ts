@@ -1,7 +1,10 @@
-import { agentSessionFailureFact, providerDiagnosticOf } from '../../shared/agent-session-failure'
-import type { AgentSessionBackgroundTaskStops } from '../../shared/agent-child-work-stop-targets'
-import type { AiVaultConversationCopy } from '../../shared/ai-vault-resume-preparation'
-import { isLegacyAgentSessionAccountHome } from '../../shared/agent-session-account-home'
+import {
+  agentSessionFailureFact,
+  providerDiagnosticOf
+} from '../../shared/agent-session/failures/agent-session-failure'
+import type { AgentSessionBackgroundTaskStops } from '../../shared/agent-status/child-work/agent-child-work-stop-targets'
+import type { AiVaultConversationCopy } from '../../shared/ai-vault/resume/ai-vault-resume-preparation'
+import { isLegacyAgentSessionAccountHome } from '../../shared/agent-session/lifecycle/agent-session-account-home'
 import type { StructuredAgentSessionAdapter } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import { createZcodeAgentConnection } from './zcode-protocol-connection'
 import { zcodeSessionForkResultSchema } from './zcode-protocol-messages'

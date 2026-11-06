@@ -2,8 +2,8 @@
 // target index it becomes. zcode numbers turns from the conversation's start and a fork copies
 // that history forward, so the journal's turn order and zcode's stay the same sequence.
 
-import { readAgentJournalTurn } from '../../shared/agent-session-turn-record'
-import type { AgentJournalItemBody } from '../../shared/agent-session-journal-types'
+import { readAgentJournalTurn } from '../../shared/agent-session/lifecycle/agent-session-turn-record'
+import type { AgentJournalItemBody } from '../../shared/agent-session/journal/agent-session-journal-types'
 
 /** The journal shape the count reads: the real load satisfies it, and so does a test double. */
 export type ZcodeRewindJournal = {

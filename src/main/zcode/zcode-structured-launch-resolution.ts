@@ -10,18 +10,16 @@
 // host reads them) overrides everything. A resume reattaches the provider session the record
 // proved.
 
-import {
-  agentSessionProviderHandleChainHead,
-  agentSessionProviderHandleKey
-} from '../../shared/agent-session-provider-handle'
-import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session-account-home'
+import { agentSessionProviderHandleChainHead } from '../../shared/agent-session/lifecycle/agent-session-provider-handle'
+import { agentSessionProviderHandleKey } from '../../shared/agent-session/lifecycle/agent-session-provider-handle-encoding'
+import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session/lifecycle/agent-session-account-home'
 import {
   resolveAgainAfterRefreshOnMissingProgram,
   type StructuredAgentCommandSettings
 } from '../native-chat/structured-agent-command-resolution'
 import type { resolveCliCommand } from '../../shared/node-cli-command-resolution'
-import type { StructuredAgentLaunchPartResolver } from '../runtime/structured-agent-launch-composition'
-import { STRUCTURED_CHILD_ENV_TO_DELETE } from '../runtime/structured-session-child-env'
+import type { StructuredAgentLaunchPartResolver } from '../runtime/agent-session/launch/structured-agent-launch-composition'
+import { STRUCTURED_CHILD_ENV_TO_DELETE } from '../runtime/agent-session/environment/structured-session-child-env'
 import type { ZcodeOfficialRuntimeDeps } from './zcode-official-runtime'
 import { resolveZcodeCliInvocation } from './zcode-cli-invocation'
 

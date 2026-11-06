@@ -1,13 +1,13 @@
 // The `/` surface of a zcode chat whose agent is not running, as the CLI itself lists it: a
 // scratch app-server resumes the chat's session (or opens a draft) and answers with its snapshot.
 
-import { agentSessionProviderHandleChainHead } from '../../shared/agent-session-provider-handle'
+import { agentSessionProviderHandleChainHead } from '../../shared/agent-session/lifecycle/agent-session-provider-handle'
 import {
   isLegacyAgentSessionAccountHome,
   requireLegacyAgentSessionAccountHome
-} from '../../shared/agent-session-account-home'
+} from '../../shared/agent-session/lifecycle/agent-session-account-home'
 import { supportsSupervisedProviderChildLocation } from '../provider-process/supervised-provider-child-location'
-import type { AgentSessionRecord } from '../../shared/agent-session-record'
+import type { AgentSessionRecord } from '../../shared/agent-session/lifecycle/agent-session-record'
 import {
   AtRestCommandCatalog,
   type AtRestCommandScan
