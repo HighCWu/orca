@@ -30,6 +30,7 @@ export function ProviderDetailsMenu({
   trigger,
   accountLabel,
   panelFooter,
+  hidePanelResetCredits = false,
   variant = 'default'
 }: {
   provider: ProviderRateLimits | null
@@ -45,6 +46,7 @@ export function ProviderDetailsMenu({
   triggerContent?: React.ReactNode
   trigger?: React.ReactElement
   accountLabel?: string
+  hidePanelResetCredits?: boolean
   panelFooter?: React.ReactNode
   variant?: 'default' | 'account'
 }): React.JSX.Element {
@@ -75,7 +77,11 @@ export function ProviderDetailsMenu({
               usagePercentageDisplay={usagePercentageDisplay}
             />
           ) : (
-            <ProviderPanel p={provider} usagePercentageDisplay={usagePercentageDisplay} />
+            <ProviderPanel
+              p={provider}
+              showResetCredits={!hidePanelResetCredits}
+              usagePercentageDisplay={usagePercentageDisplay}
+            />
           )}
         </div>
       ) : null}

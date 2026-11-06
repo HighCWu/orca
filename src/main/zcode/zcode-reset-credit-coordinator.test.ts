@@ -7,7 +7,7 @@ import {
   type ZcodeResetCreditAttempts
 } from '../../shared/zcode-reset-credit-attempts'
 import { createEmptyRateLimitState } from '../../shared/rate-limit-state-factory'
-import type { Store } from '../persistence'
+import type { Store } from '../persistence/loading-store/store'
 import type { RateLimitService } from '../rate-limits/service'
 import type { ZcodeResetType } from './zcode-reset-credits'
 import { ZcodeResetCreditCoordinator } from './zcode-reset-credit-coordinator'

@@ -4,7 +4,7 @@ import type {
   ZcodeResetCreditPendingAttempt
 } from '../../shared/zcode-reset-credit-attempts'
 import { profileStateWriterFailureOutcome } from '../persistence/profile-state/profile-state-writer-errors'
-import type { Store } from '../persistence'
+import type { Store } from '../persistence/loading-store/store'
 import type { RateLimitService } from '../rate-limits/service'
 import { zcodeCredentialStorePath } from '../rate-limits/zcode-usage-credentials'
 import { readZcodeResetAccountId, type ZcodeResetType } from './zcode-reset-credits'
