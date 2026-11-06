@@ -208,7 +208,7 @@ function createAcpAdapter(
 
 function createZcodeAdapter(context: StructuredAgentAdapterContext): StructuredAgentRuntimeAdapter {
   const { deps, followUps } = context
-  const readJournal = (sessionId: string) => replayJournal(context.journalDatabase.db, sessionId)
+  const readJournal = (sessionId: string) => restoreJournal(context.journalDatabase.db, sessionId)
   return new ZcodeStructuredSessionAdapter({
     resolveLaunch: composeStructuredLaunch(
       ZCODE_STRUCTURED_AGENT,

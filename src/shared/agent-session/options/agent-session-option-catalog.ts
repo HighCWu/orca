@@ -13,7 +13,7 @@ import {
 import { GROK_SESSION_OPTION_CATALOG } from './agent-session-option-catalog-grok'
 import { MUSE_SESSION_OPTION_CATALOG } from './agent-session-option-catalog-muse'
 import { OMP_SESSION_OPTION_CATALOG } from './agent-session-option-catalog-omp'
-import { ZCODE_SESSION_OPTION_CATALOG } from './agent-session-option-catalog-zcode'
+import { ZCODE_SESSION_OPTION_CATALOG } from '../../agent-session-option-catalog-zcode'
 import type {
   AgentSessionOptionCatalog,
   AgentSessionOptionCatalogMap,

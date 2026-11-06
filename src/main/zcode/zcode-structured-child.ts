@@ -11,13 +11,13 @@ import {
   type AgentSessionAcquisition,
   type StructuredAgentSessionAcquireInput
 } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
-import type { AgentSessionProcessIdentity } from '../../shared/agent-session-record'
+import type { AgentSessionProcessIdentity } from '../../shared/agent-session/lifecycle/agent-session-record'
 import {
   createStructuredAgentSessionLogger,
   neverThrowingStructuredAgentSessionLogger
 } from '../native-chat/agent-session-wire/structured-agent-session-logger'
 import { zcodeSessionEventEnvelopeSchema } from './zcode-protocol-messages'
-import type { AgentChildWorkEvidence } from '../../shared/agent-status-child-work-evidence'
+import type { AgentChildWorkEvidence } from '../../shared/agent-status/child-work/agent-status-child-work-evidence'
 import { ZcodeV4ConversationChannel } from './v4/zcode-v4-conversation-channel'
 import { ZcodeV4ConversationTranslator } from './v4/zcode-v4-conversation-projection'
 import { ZcodeStructuredLane } from './zcode-structured-lane'

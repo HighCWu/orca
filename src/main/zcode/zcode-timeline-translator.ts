@@ -1,10 +1,10 @@
 import { BoundedMap } from '../../shared/bounded-map'
 import { UNVERIFIABLE_TURN_VERDICT } from '../native-chat/agent-session-wire/structured-agent-session-stale-turn-verdict'
 import type { ProviderTimelineEvent } from '../native-chat/agent-session-timeline/provider-timeline-event'
-import { agentSessionFailureFact } from '../../shared/agent-session-failure'
-import { agentSessionFailureWords } from '../../shared/agent-session-failure-words'
-import { TUI_AGENT_DISPLAY_NAMES } from '../../shared/tui-agent-display-names'
-import type { AgentSessionBackgroundTaskRunState } from '../../shared/agent-session-background-task-wire'
+import { agentSessionFailureFact } from '../../shared/agent-session/failures/agent-session-failure'
+import { agentSessionFailureWords } from '../../shared/agent-session/failures/agent-session-failure-words'
+import { TUI_AGENT_DISPLAY_NAMES } from '../../shared/agent-launch/catalog/tui-agent-display-names'
+import type { AgentSessionBackgroundTaskRunState } from '../../shared/agent-session/agent-session-background-task-wire'
 import {
   zcodeModelCompleteSchema,
   zcodeModelStreamingSchema,

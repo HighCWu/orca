@@ -9,7 +9,7 @@ import {
 } from './zcode-session-snapshot-facts'
 import { zcodeGoalActionOf } from './zcode-structured-session-adapter'
 import { zcodeAttachmentsOf } from './zcode-message-attachments'
-import type { AgentJournalMessageItem } from '../../shared/agent-session-journal-types'
+import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
 
 const snapshot = {
   session: { sessionId: 'sess_p' },

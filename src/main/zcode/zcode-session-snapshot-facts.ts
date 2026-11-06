@@ -6,7 +6,7 @@ import { z } from 'zod'
 import type {
   AgentSessionModelOption,
   AgentSessionSlashCommand
-} from '../../shared/agent-session-wire'
+} from '../../shared/agent-session/agent-session-wire'
 
 const thoughtLevelSchema = z.looseObject({
   value: z.string(),

@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import type { AgentSessionExecutionOptions } from '../../shared/agent-session-execution-options'
+import type { AgentSessionExecutionOptions } from '../../shared/agent-session/options/agent-session-execution-options'
 import type { StructuredAgentSessionLiveOptions } from '../native-chat/agent-session-wire/structured-agent-session-option-models'
 import { AgentSessionOptionRejectedError } from '../native-chat/agent-session-wire/structured-agent-session-option-error'
 import type { ZcodeStructuredChild } from './zcode-structured-child'

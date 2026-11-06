@@ -1,5 +1,5 @@
-import type { AgentSessionSlashCommand } from '../../shared/agent-session-wire'
-import type { AgentChildWorkEvidence } from '../../shared/agent-status-child-work-evidence'
+import type { AgentSessionSlashCommand } from '../../shared/agent-session/agent-session-wire'
+import type { AgentChildWorkEvidence } from '../../shared/agent-status/child-work/agent-status-child-work-evidence'
 import type { ZcodeStructuredChild } from './zcode-structured-child'
 import { ZcodeSubagentEvidence } from './zcode-subagent-evidence'
 

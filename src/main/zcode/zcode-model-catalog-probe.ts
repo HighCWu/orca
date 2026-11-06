@@ -3,14 +3,14 @@
 // (`persistence: 'deferred'`).
 
 import { homedir } from 'node:os'
-import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session-account-home'
+import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session/lifecycle/agent-session-account-home'
 import type {
   AgentModelCatalogDiscovery,
   AgentModelCatalogProbe
 } from '../native-chat/agent-model-catalog/agent-model-catalog-discovery'
 import type { AgentModelCatalogSuccess } from '../native-chat/agent-model-catalog/agent-model-catalog-entry'
 import { runAgentModelCatalogSession } from '../native-chat/agent-model-catalog/agent-model-catalog-probe-runner'
-import type { StructuredAgentModelCatalogContext } from '../runtime/structured-agent-runtime-registrations'
+import type { StructuredAgentModelCatalogContext } from '../runtime/agent-session/installation/structured-agent-runtime-registration-types'
 import { createZcodeAgentConnection } from './zcode-protocol-connection'
 import { resolveZcodeLaunchInvocation } from './zcode-structured-launch-resolution'
 import { syncZcodeAccountConfig } from './zcode-account-config-sync'

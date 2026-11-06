@@ -2,7 +2,7 @@
 // the protocol's prompt attachment shape (kind/filename/localPath) at the boundary.
 
 import { basename, extname } from 'node:path'
-import type { AgentJournalMessageItem } from '../../shared/agent-session-journal-types'
+import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
 
 export type ZcodeSendAttachment = {
   kind: 'image'

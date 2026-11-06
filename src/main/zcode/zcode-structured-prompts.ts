@@ -4,7 +4,7 @@
 // delivery. An answer claims the request, commits the journal compare-and-set while the claim is
 // held, and only then settles each announcement with the same business result.
 
-import type { AgentSessionPromptResponse } from '../../shared/agent-session-question-answer'
+import type { AgentSessionPromptResponse } from '../../shared/agent-session/agent-session-question-answer'
 import {
   AgentSessionPromptAnswerRejectedError,
   AgentSessionPromptUnavailableError

@@ -1,4 +1,7 @@
-import type { AgentSessionOptionCatalog, CatalogOption } from './agent-session-option-catalog-types'
+import type {
+  AgentSessionOptionCatalog,
+  CatalogOption
+} from './agent-session/options/agent-session-option-catalog-types'
 
 // The tiers the zcode CLI's own `/effort <level>` command validates against. A model's
 // reachable set is its account's own menu, so `defaultValue` is only the picker's

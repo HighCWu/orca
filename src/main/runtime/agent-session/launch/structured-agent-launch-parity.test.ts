@@ -107,7 +107,7 @@ vi.mock('../../../pi/rpc-session-adapter', async (importOriginal) => {
   }
   return { ...actual, PiRpcSessionAdapter: RecordingAdapter }
 })
-vi.mock('../zcode/zcode-structured-session-adapter', async (importOriginal) => {
+vi.mock('../../../zcode/zcode-structured-session-adapter', async (importOriginal) => {
   const actual = await importOriginal<typeof ZcodeAdapterModule>()
   class RecordingAdapter extends actual.ZcodeStructuredSessionAdapter {
     constructor(deps: ConstructorParameters<typeof actual.ZcodeStructuredSessionAdapter>[0]) {

@@ -3,7 +3,7 @@
 // the send instead of running another model.
 
 import { describe, expect, it, vi } from 'vitest'
-import type { AgentJournalMessageItem } from '../../shared/agent-session-journal-types'
+import type { AgentJournalMessageItem } from '../../shared/agent-session/journal/agent-session-journal-types'
 import { AgentSessionOptionRejectedError } from '../native-chat/agent-session-wire/structured-agent-session-option-error'
 import type { ZcodeAgentConnection } from './zcode-protocol-connection'
 import { ZcodeStructuredSessionAdapter } from './zcode-structured-session-adapter'

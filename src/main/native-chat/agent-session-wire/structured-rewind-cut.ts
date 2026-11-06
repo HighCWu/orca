@@ -80,7 +80,7 @@ export function structuredRewindCut(
     })
     return {
       beforeMessage: { sessionId: target.nativeId, uuid: cutTurnId },
-      kept: keptRows.map((item) => keptRow(journal, item, providerKey))
+      kept: keptRows.map((item) => keptRow(journal, item))
     }
   }
   if (

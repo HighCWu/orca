@@ -6,7 +6,7 @@ import {
   isJournalRewindSource,
   zcodeRewindTurnIndex
 } from './zcode-structured-rewind'
-import type { AgentJournalItemBody } from '../../shared/agent-session-journal-types'
+import type { AgentJournalItemBody } from '../../shared/agent-session/journal/agent-session-journal-types'
 
 type TurnItem = { itemId: string; body: AgentJournalItemBody }
 
