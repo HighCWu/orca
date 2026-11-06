@@ -13,6 +13,10 @@ const dependencies = vi.hoisted(() => ({
 
 vi.mock('react-native', () => ({
   ActivityIndicator: 'ActivityIndicator',
+  Platform: {
+    OS: 'web',
+    select: (options: { web?: unknown; default?: unknown }) => options.web ?? options.default
+  },
   AppState: { currentState: 'active', addEventListener: () => ({ remove: () => {} }) },
   Pressable: 'Pressable',
   RefreshControl: 'RefreshControl',
@@ -41,7 +45,16 @@ vi.mock('../navigation/route-handoff', () => ({
   useRouteHandoff: () => ({ back: dependencies.back })
 }))
 
-vi.mock('../components/BottomDrawer', () => ({ BottomDrawer: () => null }))
+vi.mock('./MobileAccountsLoadState', () => ({ MobileAccountsLoadState: () => null }))
+vi.mock('../components/bottom-drawer/BottomDrawer', () => ({ BottomDrawer: () => null }))
+vi.mock('../components/nav-bar/NavBar', () => ({ NavBar: 'NavBar' }))
+vi.mock('../components/nav-bar/NavBarButton', () => ({ NavBarButton: 'NavBarButton' }))
+vi.mock('../components/list/ListGroup', () => ({
+  ListGroup: 'ListGroup',
+  ListRow: 'ListRow',
+  SectionHeader: 'SectionHeader',
+  LIST_ROW_PADDING: 16
+}))
 
 vi.mock('lucide-react-native', () => ({
   Check: 'Check',
@@ -51,7 +64,10 @@ vi.mock('lucide-react-native', () => ({
   User: 'User'
 }))
 
-vi.mock('../transport/host-store', () => ({ loadHosts: dependencies.loadHosts }))
+vi.mock('../transport/host-store', () => ({
+  loadHosts: dependencies.loadHosts,
+  peekHosts: () => []
+}))
 
 vi.mock('../transport/host-client-hooks', () => {
   const client = {
@@ -78,6 +94,7 @@ vi.mock('../transport/host-client-hooks', () => {
     }
   }
   return {
+    useForceReconnect: () => vi.fn(),
     useHostClient: () => ({ client, state: 'connected' })
   }
 })
